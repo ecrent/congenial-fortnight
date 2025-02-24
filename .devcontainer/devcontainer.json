@@ -20,7 +20,11 @@
     "3000": {
       "label": "Application",
       "onAutoForward": "openPreview"
+    },
+    "5432": {
+      "label": "PostgreSQL",
+      "onAutoForward": "openPreview"
     }
   },
-  "forwardPorts": [3000]
+  "forwardPorts": [3000, 5432]
 }
