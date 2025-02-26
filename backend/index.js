@@ -1,8 +1,14 @@
-const express = require('express')
-const app = express()
-const port = 3000
+const express = require('express');
+const app = express();
+const port = 3000;
 
 app.use(express.json());
+
+// Import database routes
+const dbRoutes = require('./routes/db');
+
+// Use database routes
+app.use('/api/v1/db', dbRoutes);
 
 app.get('/', (req, res) => {
   res.send('Hello World!');
@@ -26,13 +32,11 @@ app.get('/api/v1/timetables', (req, res) => {
         }
       ]
     }
-  })
-    }
-  
-);
+  });
+});
 
 app.get('/api/v1/timetables/:id', (req, res) => {
-  console.log(req.params);
+  console.log(req.params.id);
   res.status(200).json({
     status: 'success',
     data: {
@@ -41,8 +45,7 @@ app.get('/api/v1/timetables/:id', (req, res) => {
         description: 'days in the week'
       }
     }
-  }
-);
+  });
 });
 
 app.post('/api/v1/timetables', (req, res) => {
@@ -52,11 +55,10 @@ app.post('/api/v1/timetables', (req, res) => {
     data: {
       timetable: req.body
     }
-  })
-    }
-);
+  });
+});
 
-app.put( '/api/v1/timetables/:id', (req, res) => {
+app.put('/api/v1/timetables/:id', (req, res) => {
   console.log(req.params.id);
   console.log(req.body);
   res.status(200).json({
@@ -64,20 +66,19 @@ app.put( '/api/v1/timetables/:id', (req, res) => {
     data: {
       timetable: req.body
     }
-  })
-    }
-);
+  });
+});
 
 app.delete('/api/v1/timetables/:id', (req, res) => {
   console.log(req.params.id);
   res.status(204).json({
     status: 'success',
     data: null
-  })
-    }
-);  
-
+  });
+});
 
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`)
 });
+
+
