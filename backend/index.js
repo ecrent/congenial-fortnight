@@ -1,18 +1,54 @@
 const express = require('express');
 const app = express();
 const port = 3000;
+// Import database configuration
+const db = require('./config/database');
 
 app.use(express.json());
-
-// Import database routes
-const dbRoutes = require('./routes/db');
-
-// Use database routes
-app.use('/api/v1/db', dbRoutes);
 
 app.get('/', (req, res) => {
   res.send('Hello World!');
   console.log('somebody hit the home route');
+});
+
+// Database test route directly in main app
+app.get('/api/v1/db/test', async (req, res) => {
+  try {
+    const result = await db.query('SELECT NOW()');
+    res.status(200).json({
+      status: 'success',
+      message: 'Database connection successful!',
+      timestamp: result.rows[0].now
+    });
+  } catch (error) {
+    console.error('Database query error:', error);
+    res.status(500).json({
+      status: 'error', 
+      message: 'Database connection failed',
+      details: error.message
+    });
+  }
+});
+
+// Database query for timetables
+app.get('/api/v1/db/timetables', async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM timetables');
+    res.status(200).json({
+      status: 'success',
+      results: result.rows.length,
+      data: {
+        timetables: result.rows
+      }
+    });
+  } catch (error) {
+    console.error('Database query error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to fetch timetables',
+      details: error.message
+    });
+  }
 });
 
 app.get('/api/v1/timetables', (req, res) => {
@@ -78,7 +114,5 @@ app.delete('/api/v1/timetables/:id', (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
+  console.log(`Example app listening on port ${port}`);
 });
-
-
