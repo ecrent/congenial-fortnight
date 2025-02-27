@@ -51,66 +51,126 @@ app.get('/api/v1/db/timetables', async (req, res) => {
   }
 });
 
-app.get('/api/v1/timetables', (req, res) => {
-  res.status(200).json({
-    status: 'success',
-    data: {
-      timetables: [
-        {
-          id: 1,
-          name: 'Timetable 1',
-          description: 'user 1 time table'
-        },
-        {
-          id: 2,
-          name: 'Timetable 2',
-          description: 'user 2 time table'
-        }
-      ]
+// Get timetable by ID
+app.get('/api/v1/timetables/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(`Fetching timetable with ID: ${id}`);
+    
+    const result = await db.query('SELECT * FROM timetables WHERE id = $1', [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        status: 'fail',
+        message: `Timetable with ID ${id} not found`
+      });
     }
-  });
-});
-
-app.get('/api/v1/timetables/:id', (req, res) => {
-  console.log(req.params.id);
-  res.status(200).json({
-    status: 'success',
-    data: {
-      timetable: {
-        name: 'default timetable',
-        description: 'days in the week'
+    
+    res.status(200).json({
+      status: 'success',
+      data: {
+        timetable: result.rows[0]
       }
-    }
-  });
+    });
+  } catch (error) {
+    console.error('Database query error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to fetch timetable',
+      details: error.message
+    });
+  }
 });
 
-app.post('/api/v1/timetables', (req, res) => {
-  console.log(req.body);
-  res.status(201).json({
-    status: 'success',
-    data: {
-      timetable: req.body
-    }
-  });
+// Create new timetable
+app.post('/api/v1/timetables', async (req, res) => {
+  try {
+    const { name, description } = req.body;
+    console.log('Creating new timetable:', req.body);
+    
+    const result = await db.query(
+      'INSERT INTO timetables (name, description) VALUES ($1, $2) RETURNING *',
+      [name, description]
+    );
+    
+    res.status(201).json({
+      status: 'success',
+      data: {
+        timetable: result.rows[0]
+      }
+    });
+  } catch (error) {
+    console.error('Database query error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to create timetable',
+      details: error.message
+    });
+  }
 });
 
-app.put('/api/v1/timetables/:id', (req, res) => {
-  console.log(req.params.id);
-  console.log(req.body);
-  res.status(200).json({
-    status: 'success',
-    data: {
-      timetable: req.body
+// Update timetable
+app.put('/api/v1/timetables/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, description } = req.body;
+    console.log(`Updating timetable with ID: ${id}`, req.body);
+    
+    const result = await db.query(
+      'UPDATE timetables SET name = $1, description = $2 WHERE id = $3 RETURNING *',
+      [name, description, id]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        status: 'fail',
+        message: `Timetable with ID ${id} not found`
+      });
     }
-  });
+    
+    res.status(200).json({
+      status: 'success',
+      data: {
+        timetable: result.rows[0]
+      }
+    });
+  } catch (error) {
+    console.error('Database query error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to update timetable',
+      details: error.message
+    });
+  }
 });
 
-app.delete('/api/v1/timetables/:id', (req, res) => {
-  console.log(req.params.id);
-  res.status(204).json({
-    status: 'success',
-    data: null
-  });
+// Delete timetable
+app.delete('/api/v1/timetables/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(`Deleting timetable with ID: ${id}`);
+    
+    const result = await db.query('DELETE FROM timetables WHERE id = $1 RETURNING id', [id]);
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        status: 'fail',
+        message: `Timetable with ID ${id} not found`
+      });
+    }
+    
+    res.status(204).json({
+      status: 'success',
+      data: null
+    });
+  } catch (error) {
+    console.error('Database query error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to delete timetable',
+      details: error.message
+    });
+  }
 });
 
 app.listen(port, () => {
