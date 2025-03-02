@@ -1,6 +1,16 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react';
+import Scheduler from '../apis/Scheduler';
 
 const TimetablesList = () => {
+
+  useEffect(async () => { 
+    try{
+      const response = await Scheduler.get("/");
+      console.log(response);
+    }
+    catch(err){}
+  },[]);
+
   return (
     <div className="container-fluid">
       <div className="table-responsive">
@@ -36,7 +46,7 @@ const TimetablesList = () => {
         </table>
       </div>
     </div>
-  )
-}
+  );
+};
 
 export default TimetablesList
