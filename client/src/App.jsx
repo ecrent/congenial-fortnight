@@ -4,6 +4,7 @@ import Home from './routes/Home';
 import TimetablesPage from './routes/TimetablesPage';
 import UpdatePage from './routes/UpdatePage';
 import UserPage from './routes/UserPage';
+
 import { TimetablesProvider } from './context/TimetablesContext';  // Updated import
 
 function App() {
@@ -20,7 +21,6 @@ function App() {
         </Router>
       </div>
     </TimetablesProvider>
-  );
 }
 
 export default App;

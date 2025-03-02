@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import Scheduler from '../apis/Scheduler';
 
@@ -20,6 +21,13 @@ const TimetablesList = () => {
 
   return (
     <div className="container-fluid">
+      <div className="table-responsive">
+        <table className="table table-hover table-dark w-100">
+          <thead>
+            <tr className="bg-primary">
+              <th scope="col">Timetable</th>
+              <th scope="col">Description</th>
+              <th scope="col">Update</th>
               <th scope="col">Delete</th>
             </tr>
           </thead>
@@ -46,7 +54,12 @@ const TimetablesList = () => {
         </table>
       </div>
     </div>
+
   );
 };
+
+  )
+}
+
 
 export default TimetablesList
