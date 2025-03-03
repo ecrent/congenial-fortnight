@@ -1,52 +1,39 @@
-import React, { useEffect, useState } from 'react';
-import Scheduler from '../apis/Scheduler';
+import React, { useState, useEffect, useContext } from 'react';
+import { TimetablesContext } from '../context/TimetablesContext';
+import Scheduler from '../services/Scheduler';
 
 const TimetablesList = () => {
-
-  useEffect(() => { 
-    // Define the async function inside useEffect
+  const [timetables, setTimetables] = useContext(TimetablesContext);
+  
+  useEffect(() => {
+    // Define an async function inside useEffect
     const fetchData = async () => {
       try {
-        const response = await Scheduler.get("/");
-        console.log(response);
+        const response = await Scheduler.get("/api/v1/db/timetables");
+        console.log(response.data);
+        // Update your state with the response data if needed
+        if (response.data && response.data.data && response.data.data.timetables) {
+          setTimetables(response.data.data.timetables);
+        }
       } catch(err) {
-        console.error("Error fetching data:", err);
+        console.error("Error fetching timetables:", err);
       }
     };
     
     // Call the async function
     fetchData();
-  }, []);
-
+  }, [setTimetables]); // Add setTimetables as a dependency
+  
   return (
-    <div className="container-fluid">
-              <th scope="col">Delete</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Timetable 1</td>
-              <td>Timetable 1 Description</td>
-              <td><button className="btn btn-warning">Update</button></td>
-              <td><button className="btn btn-danger">Delete</button></td>
-            </tr>
-            <tr>
-              <td>Timetable 2</td>
-              <td>Timetable 2 Description</td>
-              <td><button className="btn btn-warning">Update</button></td>
-              <td><button className="btn btn-danger">Delete</button></td>
-            </tr>
-            <tr>
-              <td>Timetable 3</td>
-              <td>Timetable 3 Description</td>
-              <td><button className="btn btn-warning">Update</button></td>
-              <td><button className="btn btn-danger">Delete</button></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+    <div className="list-group mt-4">
+      <h2>Timetables</h2>
+      {timetables && timetables.map(timetable => (
+        <div key={timetable.id} className="list-group-item">
+          {timetable.name || timetable.day} - {timetable.description || timetable.time}
+        </div>
+      ))}
     </div>
   );
 };
 
-export default TimetablesList
+export default TimetablesList;

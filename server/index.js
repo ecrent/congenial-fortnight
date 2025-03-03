@@ -1,10 +1,35 @@
 const express = require('express');
+const cors = require('cors');
 const app = express();
 const port = 3000;
 // Import database configuration
 const db = require('./config/database');
 
+// List of allowed origins
+const allowedOrigins = [
+  'https://congenial-fortnight-56p66qvjvr5246w9-3001.app.github.dev',
+  'http://localhost:3001' // Add localhost for testing
+];
+
+// CORS middleware
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  next();
+});
+
 app.use(express.json());
+
+// Log all requests for debugging
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path} - Origin: ${req.headers.origin}`);
+  next();
+});
 
 app.get('/', (req, res) => {
   res.send('Hello World!');
@@ -173,6 +198,6 @@ app.delete('/api/v1/timetables/:id', async (req, res) => {
   }
 });
 
-app.listen(port, () => {
+app.listen(port, '0.0.0.0', () => {
   console.log(`Example app listening on port ${port}`);
 });
