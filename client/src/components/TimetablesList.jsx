@@ -25,13 +25,41 @@ const TimetablesList = () => {
   }, [setTimetables]); // Add setTimetables as a dependency
   
   return (
-    <div className="list-group mt-4">
-      <h2>Timetables</h2>
-      {timetables && timetables.map(timetable => (
-        <div key={timetable.id} className="list-group-item">
-          {timetable.name || timetable.day} - {timetable.description || timetable.time}
-        </div>
-      ))}
+    <div className="list-group">
+      <table className="table table-hover table-dark">
+        <thead>
+          <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Name</th>
+            <th scope="col">Description</th>
+            <td></td>
+            <td></td>
+          </tr>
+        </thead>
+        <tbody>
+          {timetables.map((timetable) => (
+            <tr key={timetable.id}>
+              <td>{timetable.id}</td>
+              <td>{timetable.title}</td>
+              <td>{timetable.description}</td>
+              
+              <td><button type="button" class="btn btn-primary">Edit</button></td>
+              <td><button type="button" class="btn btn-danger">Remove</button></td>
+              
+              
+              
+            </tr>
+
+          ))}
+      
+        </tbody>
+    
+        
+      
+
+
+      </table>
+
     </div>
   );
 };
