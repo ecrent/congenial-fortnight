@@ -56,7 +56,7 @@ app.get('/api/v1/db/test', async (req, res) => {
 });
 
 // Database query for timetables
-app.get('/api/v1/db/timetables', async (req, res) => {
+app.get('/api/v1/timetables', async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM timetables');
     res.status(200).json({
@@ -110,12 +110,12 @@ app.get('/api/v1/timetables/:id', async (req, res) => {
 // Create new timetable
 app.post('/api/v1/timetables', async (req, res) => {
   try {
-    const { name, description } = req.body;
+    const { title: title, description } = req.body;
     console.log('Creating new timetable:', req.body);
     
     const result = await db.query(
-      'INSERT INTO timetables (name, description) VALUES ($1, $2) RETURNING *',
-      [name, description]
+      'INSERT INTO timetables (title, description) VALUES ($1, $2) RETURNING *',
+      [title, description]
     );
     
     res.status(201).json({
