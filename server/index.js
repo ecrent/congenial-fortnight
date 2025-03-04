@@ -7,8 +7,8 @@ const db = require('./config/database');
 
 // List of allowed origins
 const allowedOrigins = [
-  'https://congenial-fortnight-56p66qvjvr5246w9-3001.app.github.dev',
-  'http://localhost:3001' // Add localhost for testing
+  'https://bug-free-space-waffle-r9v99g7q49jc5wj7-3001.app.github.dev',
+  'https://bug-free-space-waffle-r9v99g7q49jc5wj7-3000.app.github.dev' // Add localhost for testing
 ];
 
 // CORS middleware
