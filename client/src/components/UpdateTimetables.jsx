@@ -23,8 +23,22 @@ const UpdateTimetables = (props) => {
         fetchData();
     }, [id]);
 
+    const Update = async () => {
+        try {
+            const response = await Scheduler.put(`/timetables/${id}`, {
+                title,
+                description,
+                id
+            });
+            console.log("Update response:", response);
+        } catch (err) {
+            console.error("Error updating timetable:", err);
+        }
+    };
+
     return (
         <div>
+            
             <h1>{title || 'Loading...'}</h1>
             <form action="">
                 <div className="form-group">
@@ -35,7 +49,7 @@ const UpdateTimetables = (props) => {
                     <label htmlFor="description">Description</label>
                     <input value={description} onChange={(e) => setDescription(e.target.value)} id="description" className="form-control" type="text" />
                 </div>
-                <button type="submit" className="btn btn-primary">Update</button>
+                <button onClick={() => Update (id)}  type="submit" className="btn btn-primary">Update</button>
             </form>
         </div>
     );

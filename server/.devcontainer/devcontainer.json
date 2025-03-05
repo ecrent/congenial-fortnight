@@ -19,12 +19,19 @@
   "portsAttributes": {
     "3000": {
       "label": "Application",
-      "onAutoForward": "openPreview"
+      "onAutoForward": "openPreview",
+      "visibility": "public"
     },
     "5432": {
       "label": "PostgreSQL",
-      "onAutoForward": "openPreview"
+      "onAutoForward": "openPreview",
+      "visibility": "public"
+    },
+    "3001": {
+      "label": "React",
+      "onAutoForward": "openPreview",
+      "visibility": "public"
     }
   },
-  "forwardPorts": [3000, 5432]
+  "forwardPorts": [3000, 5432, 3001]
 }
