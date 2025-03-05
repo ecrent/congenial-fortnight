@@ -138,12 +138,12 @@ app.post('/api/v1/timetables', async (req, res) => {
 app.put('/api/v1/timetables/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, description } = req.body;
+    const { title, description } = req.body;
     console.log(`Updating timetable with ID: ${id}`, req.body);
     
     const result = await db.query(
-      'UPDATE timetables SET name = $1, description = $2 WHERE id = $3 RETURNING *',
-      [name, description, id]
+      'UPDATE timetables SET title = $1, description = $2 WHERE id = $3 RETURNING *',
+      [title, description, id]
     );
     
     if (result.rows.length === 0) {
