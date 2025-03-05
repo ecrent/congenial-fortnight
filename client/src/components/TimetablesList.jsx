@@ -20,6 +20,18 @@ const TimetablesList = () => {
     };
     fetchData();
   }, [setTimetables]);
+
+  const handleDelete = async (id) => {
+    try {
+      const response = await Scheduler.delete(`/timetables/${id}`);
+      console.log("Delete response:", response);
+      if (response.status === 204) {
+        setTimetables(timetables.filter((timetable) => timetable.id !== id));
+      }
+    }catch (err) {
+      console.error("Error deleting timetable:", err);
+    }
+  }
   
   return (
     <div className="list-group">
@@ -43,7 +55,7 @@ const TimetablesList = () => {
                 <button type="button" className="btn btn-secondary">Edit</button>
               </td>
               <td>
-                <button type="button" className="btn btn-danger">Remove</button>
+                <button onClick={() => handleDelete(timetable.id)} type="button" className="btn btn-danger">Remove</button>
               </td>
             </tr>
           ))}
