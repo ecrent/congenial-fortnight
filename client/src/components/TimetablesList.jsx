@@ -1,11 +1,12 @@
 import React, { useContext, useEffect } from 'react';
 import { TimetablesContext } from '../context/TimetablesContext';
 import Scheduler from '../apis/Scheduler';
+import {  useNavigate } from 'react-router-dom';
 
 const TimetablesList = () => {
   // Use object destructuring to match the provider's value
   const { timetables, setTimetables } = useContext(TimetablesContext);
-  
+  let navigate = useNavigate();
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -32,7 +33,10 @@ const TimetablesList = () => {
       console.error("Error deleting timetable:", err);
     }
   }
-  
+  const handleUpdate = (id) => {
+    navigate(`/timetables/${id}/update`);
+  };
+
   return (
     <div className="list-group">
       <table className="table table-hover table-dark">
@@ -52,7 +56,7 @@ const TimetablesList = () => {
               <td>{timetable.title}</td>
               <td>{timetable.description}</td>
               <td>
-                <button type="button" className="btn btn-secondary">Edit</button>
+                <button onClick={() => handleUpdate (timetable.id)} type="button" className="btn btn-secondary">Edit</button>
               </td>
               <td>
                 <button onClick={() => handleDelete(timetable.id)} type="button" className="btn btn-danger">Remove</button>

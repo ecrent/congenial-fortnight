@@ -13,8 +13,8 @@ function App() {
         <Router>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/user/timetables" element={<TimetablesPage />} />
-            <Route path="/user/timetables/:id/update" element={<UpdatePage />} />
+            <Route path="/timetables" element={<TimetablesPage />} />
+            <Route path="/timetables/:id/update" element={<UpdatePage />} />
             <Route path="/user" element={<UserPage />} />
           </Routes>
         </Router>
