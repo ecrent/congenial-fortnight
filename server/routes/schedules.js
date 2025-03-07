@@ -170,26 +170,33 @@ router.get('/sessions/:sessionId/optimal-times', async (req, res) => {
     // Find overlapping availability for all users
     // This is a simplistic version; a more sophisticated approach may be needed
     const result = await db.query(`
-      WITH user_ids AS (
-        SELECT id FROM users WHERE session_id = $1
+      WITH user_intervals AS (
+        SELECT u.id AS user_id, s.day_of_week, s.start_time, s.end_time
+        FROM schedules s
+        JOIN users u ON s.user_id = u.id
+        WHERE u.session_id = $1
+      ),
+      pair_intersections AS (
+        SELECT 
+          ui1.day_of_week,
+          GREATEST(ui1.start_time, ui2.start_time) AS common_start,
+          LEAST(ui1.end_time, ui2.end_time) AS common_end,
+          ui1.user_id AS user1,
+          ui2.user_id AS user2
+        FROM user_intervals ui1
+        JOIN user_intervals ui2 
+          ON ui1.day_of_week = ui2.day_of_week
+         AND ui1.user_id < ui2.user_id
+        WHERE LEAST(ui1.end_time, ui2.end_time) > GREATEST(ui1.start_time, ui2.start_time)
       )
       SELECT 
-        s.day_of_week,
-        s.start_time,
-        s.end_time,
-        COUNT(DISTINCT s.user_id) as user_count,
-        (SELECT COUNT(*) FROM user_ids) as total_users
-      FROM 
-        schedules s
-      JOIN 
-        user_ids ON s.user_id = user_ids.id
-      GROUP BY 
-        s.day_of_week, s.start_time, s.end_time
-      HAVING 
-        COUNT(DISTINCT s.user_id) = (SELECT COUNT(*) FROM user_ids)
-        AND EXTRACT(EPOCH FROM (s.end_time - s.start_time))/60 >= $2
-      ORDER BY 
-        s.day_of_week, s.start_time
+        day_of_week,
+        common_start,
+        common_end,
+        EXTRACT(EPOCH FROM (common_end - common_start)) / 60 AS available_minutes
+      FROM pair_intersections
+      WHERE EXTRACT(EPOCH FROM (common_end - common_start)) / 60 >= $2
+      ORDER BY day_of_week, common_start;
     `, [sessionId, duration]);
     
     res.status(200).json({

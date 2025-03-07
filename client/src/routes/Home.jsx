@@ -1,14 +1,18 @@
 import React from 'react'
-import AddTimetables from '../components/AddTimetables'
+import { Link } from 'react-router-dom'
 import Header from '../components/Header'
-import TimetablesList from '../components/TimetablesList'
 
 const Home = () => {
   return (
     <div>
       <Header />
-      <AddTimetables />
-      <TimetablesList />
+      <div className="text-center my-5">
+        <h2>Find the perfect meeting time with your group</h2>
+        <p className="lead">Create a session, share the code, and easily find times when everyone is available.</p>
+        <div className="mt-4">
+          <Link to="/join" className="btn btn-primary btn-lg">Start Scheduling</Link>
+        </div>
+      </div>
     </div>
   )
 }
