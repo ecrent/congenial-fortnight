@@ -5,12 +5,12 @@ const port = 3000;
 // Import database configuration
 const db = require('./config/database');
 
+
 // Import routes
 const sessionRoutes = require('./routes/sessions');
-const timetableRoutes = require('./routes/timetables');
-const scheduleItemRoutes = require('./routes/scheduleItems');
 const userRoutes = require('./routes/users');
 const scheduleRoutes = require('./routes/schedules');
+const dbtest = require("./routes/databaseconnectiontest");
 
 // List of allowed origins
 const allowedOrigins = [
@@ -45,32 +45,13 @@ app.get('/', (req, res) => {
 
 // Mount routes
 app.use('/api/v1/sessions', sessionRoutes);
-app.use('/api/v1/timetables', timetableRoutes);
-// Mount scheduleItemRoutes as sub-routes of timetables
-app.use('/api/v1/timetables', scheduleItemRoutes);
 app.use('/api/v1/sessions', userRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/users', scheduleRoutes);
 app.use('/api/v1', scheduleRoutes);
+app.use("/api/v1", dbtest );
 
-// Database test route directly in main app
-app.get('/api/v1/db/test', async (req, res) => {
-  try {
-    const result = await db.query('SELECT NOW()');
-    res.status(200).json({
-      status: 'success',
-      message: 'Database connection successful!',
-      timestamp: result.rows[0].now
-    });
-  } catch (error) {
-    console.error('Database query error:', error);
-    res.status(500).json({
-      status: 'error', 
-      message: 'Database connection failed',
-      details: error.message
-    });
-  }
-});
+
 
 // 404 handler for undefined routes
 app.use((req, res) => {

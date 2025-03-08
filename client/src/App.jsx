@@ -1,8 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';  
 import Home from './routes/Home';
-import TimetablesPage from './routes/TimetablesPage';
-import UpdatePage from './routes/UpdatePage';
 import { TimetablesProvider } from './context/TimetablesContext';
 import { SessionProvider } from './context/SessionContext';
 
@@ -21,8 +19,6 @@ function App() {
             <Routes>
               {/* Original routes */}
               <Route path="/" element={<Home />} />
-              <Route path="/timetables" element={<TimetablesPage />} />
-              <Route path="/timetables/:id/update" element={<UpdatePage />} />
               
               {/* New scheduling routes */}
               <Route path="/join" element={<SessionJoin />} />

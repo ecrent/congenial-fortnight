@@ -116,43 +116,6 @@ router.get('/:code', async (req, res) => {
 });
 
 /**
- * Update session expiration
- * PUT /api/v1/sessions/:code/extend
- */
-router.put('/:code/extend', async (req, res) => {
-  try {
-    const { code } = req.params;
-    
-    // Extend the session expiration by 24 hours from now
-    const result = await db.query(
-      'UPDATE sessions SET expires_at = NOW() + INTERVAL \'24 hours\' WHERE session_code = $1 AND expires_at > NOW() RETURNING *',
-      [code]
-    );
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({
-        status: 'fail',
-        message: 'Session not found or has already expired'
-      });
-    }
-    
-    res.status(200).json({
-      status: 'success',
-      data: {
-        session: result.rows[0]
-      }
-    });
-  } catch (error) {
-    console.error('Error extending session:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Failed to extend session',
-      details: error.message
-    });
-  }
-});
-
-/**
  * Delete expired sessions (cleanup endpoint)
  * DELETE /api/v1/sessions/cleanup
  */
