@@ -27,7 +27,8 @@ const Results = () => {
     
     const fetchUsers = async () => {
       try {
-        const response = await Scheduler.get(`/sessions/${session.id}/users`);
+        // Update URL to match the server endpoint
+        const response = await Scheduler.get(`/users/session/${session.id}`);
         setUsersList(response.data.data.users || []);
         
         // If not all users are ready, go back to schedule input

@@ -10,7 +10,6 @@ const db = require('./config/database');
 const sessionRoutes = require('./routes/sessions');
 const userRoutes = require('./routes/users');
 const scheduleRoutes = require('./routes/schedules');
-const dbtest = require("./routes/databaseconnectiontest");
 
 // List of allowed origins
 const allowedOrigins = [
@@ -43,15 +42,29 @@ app.get('/', (req, res) => {
   console.log('somebody hit the home route');
 });
 
-// Mount routes
+// Mount routes - fixed to prevent overlapping route issues
 app.use('/api/v1/sessions', sessionRoutes);
-app.use('/api/v1/sessions', userRoutes);
 app.use('/api/v1/users', userRoutes);
-app.use('/api/v1/users', scheduleRoutes);
 app.use('/api/v1', scheduleRoutes);
-app.use("/api/v1", dbtest );
 
-
+// Fix the database test route by directly defining it here
+app.get('/api/v1/db/test', async (req, res) => {
+  try {
+    const result = await db.query('SELECT NOW()');
+    res.status(200).json({
+      status: 'success',
+      message: 'Database connection successful!',
+      timestamp: result.rows[0].now
+    });
+  } catch (error) {
+    console.error('Database query error:', error);
+    res.status(500).json({
+      status: 'error', 
+      message: 'Database connection failed',
+      details: error.message
+    });
+  }
+});
 
 // 404 handler for undefined routes
 app.use((req, res) => {

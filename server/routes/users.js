@@ -2,11 +2,8 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/database');
 
-/**
- * Get all users for a session
- * GET /api/v1/sessions/:sessionId/users
- */
-router.get('/:sessionId/users', async (req, res) => {
+// Change session user route to be distinct
+router.get('/session/:sessionId', async (req, res) => {
   try {
     const { sessionId } = req.params;
     
@@ -46,11 +43,7 @@ router.get('/:sessionId/users', async (req, res) => {
   }
 });
 
-/**
- * Create a new user for a session
- * POST /api/v1/sessions/:sessionId/users
- */
-router.post('/:sessionId/users', async (req, res) => {
+router.post('/session/:sessionId', async (req, res) => {
   try {
     const { sessionId } = req.params;
     const { name } = req.body;

@@ -65,7 +65,8 @@ export const SessionProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await Scheduler.post(`/sessions/${sessionId}/users`, { name });
+      // Update URL to match server route
+      const response = await Scheduler.post(`/users/session/${sessionId}`, { name });
       const newUser = response.data.data.user;
       setUser(newUser);
       

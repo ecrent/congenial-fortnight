@@ -51,7 +51,8 @@ const ScheduleInput = () => {
     
     const fetchUsers = async () => {
       try {
-        const response = await Scheduler.get(`/sessions/${session.id}/users`);
+        // Update the URL to match the server route
+        const response = await Scheduler.get(`/users/session/${session.id}`);
         setUsersList(response.data.data.users || []);
         
         // If all users are ready, go to results page
