@@ -1,10 +1,8 @@
--- Combined database initialization script for the Scheduler app
+-- Combined database initialization script for the Meeting Organizer app
 
--- First, drop all existing tables in reverse order of dependencies
+-- First, drop existing tables in reverse order of dependencies
 DROP TABLE IF EXISTS schedules CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
-DROP TABLE IF EXISTS schedule_items CASCADE;
-DROP TABLE IF EXISTS timetables CASCADE;
 DROP TABLE IF EXISTS sessions CASCADE;
 
 -- 1. Create sessions table
@@ -49,29 +47,6 @@ CREATE TABLE IF NOT EXISTS schedules (
 CREATE INDEX idx_schedules_user ON schedules(user_id);
 CREATE INDEX idx_schedules_availability ON schedules(day_of_week, start_time, end_time);
 
--- 4. Create timetables table
-CREATE TABLE IF NOT EXISTS timetables (
-    id SERIAL PRIMARY KEY,
-    title VARCHAR(255) NOT NULL,
-    description TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- 5. Create schedule_items table
-CREATE TABLE IF NOT EXISTS schedule_items (
-    id SERIAL PRIMARY KEY,
-    timetable_id INTEGER NOT NULL REFERENCES timetables(id) ON DELETE CASCADE,
-    title VARCHAR(255) NOT NULL,
-    description TEXT,
-    location VARCHAR(255),
-    start_time TIMESTAMP NOT NULL,
-    end_time TIMESTAMP NOT NULL CHECK (end_time > start_time),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX idx_schedule_items_timetable ON schedule_items(timetable_id);
-CREATE INDEX idx_schedule_items_time ON schedule_items(start_time, end_time);
-
 -- Add some sample data for testing
 INSERT INTO sessions (session_code) VALUES ('ABC12345');
 INSERT INTO users (session_id, name) VALUES (1, 'Test User');
@@ -80,14 +55,3 @@ VALUES
   (1, 1, '09:00:00', '11:00:00'),  -- Monday 9-11 AM
   (1, 1, '14:00:00', '16:00:00'),  -- Monday 2-4 PM
   (1, 3, '10:00:00', '12:00:00');  -- Wednesday 10-12 AM
-
--- Add sample timetable and schedule items
-INSERT INTO timetables (title, description) 
-VALUES ('Work Schedule', 'My weekly work schedule');
-
-INSERT INTO schedule_items (timetable_id, title, description, location, start_time, end_time)
-VALUES 
-  (1, 'Team Meeting', 'Weekly sync with the team', 'Conference Room A', 
-   '2023-05-15 09:00:00', '2023-05-15 10:00:00'),
-  (1, 'Project Review', 'Review project milestones', 'Conference Room B', 
-   '2023-05-15 14:00:00', '2023-05-15 15:30:00');
