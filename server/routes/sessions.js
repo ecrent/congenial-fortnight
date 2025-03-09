@@ -115,29 +115,4 @@ router.get('/:code', async (req, res) => {
   }
 });
 
-// Add routes for users in a session
-router.get('/:sessionId/users', async (req, res) => { /* ... */ });
-router.post('/:sessionId/users', async (req, res) => { /* ... */ });
-
-/* router.delete('/cleanup', async (req, res) => {
-  try {
-    const result = await db.query(
-      'DELETE FROM sessions WHERE expires_at < NOW() RETURNING id'
-    );
-    
-    res.status(200).json({
-      status: 'success',
-      message: `Removed ${result.rows.length} expired sessions`
-    });
-  } catch (error) {
-    console.error('Error cleaning up sessions:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Failed to clean up expired sessions',
-      details: error.message
-    });
-  }
-});
-*/
-
 module.exports = router;

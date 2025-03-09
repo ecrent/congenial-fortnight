@@ -1,0 +1,40 @@
+@startuml
+' UML Component Diagram for Meeting Organizer App
+
+package "Client" {
+    [Home Component] <<UI>>
+    [SessionJoin Component] <<UI>>
+    [UserRegistration Component] <<UI>>
+    [ScheduleInput Component] <<UI>>
+    [Results Component] <<UI>>
+    [SessionContext] <<Context>>
+    [Scheduler API] <<API>>
+}
+
+package "Server" {
+    [Sessions Route] <<Service>>
+    [Users Route] <<Service>>
+    [Schedules Route] <<Service>>
+    [Database] <<Database>>
+}
+
+' UI components interact with the context and API component
+[Home Component] --> [SessionContext]
+[SessionJoin Component] --> [SessionContext]
+[UserRegistration Component] --> [SessionContext]
+[ScheduleInput Component] --> [SessionContext]
+[Results Component] --> [SessionContext]
+
+[SessionContext] --> [Scheduler API]
+
+' Scheduler API communicates with server-side routes
+[Scheduler API] --> [Sessions Route]
+[Scheduler API] --> [Users Route]
+[Scheduler API] --> [Schedules Route]
+
+' Server routes interact with the database
+[Sessions Route] --> [Database]
+[Users Route] --> [Database]
+[Schedules Route] --> [Database]
+
+@enduml

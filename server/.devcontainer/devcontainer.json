@@ -6,9 +6,7 @@
   "waitFor": "onCreateCommand",
   "updateContentCommand": "npm install",
   "postCreateCommand": "",
-  "postAttachCommand": {
- 
-  },
+  "postAttachCommand": {},
   "customizations": {
     "codespaces": {
       "openFiles": [
@@ -19,18 +17,21 @@
   "portsAttributes": {
     "3000": {
       "label": "Application",
-      "onAutoForward": "openPreview",
-      "visibility": "public"
+      "onAutoForward": "openBrowser",
+      "visibility": "public",
+      "showInExplorer": true
     },
     "5432": {
       "label": "PostgreSQL",
-      "onAutoForward": "openPreview",
-      "visibility": "public"
+      "onAutoForward": "openBrowser",
+      "visibility": "public",
+      "showInExplorer": true
     },
     "3001": {
       "label": "React",
-      "onAutoForward": "openPreview",
-      "visibility": "public"
+      "onAutoForward": "openBrowser",
+      "visibility": "public",
+      "showInExplorer": true
     }
   },
   "forwardPorts": [3000, 5432, 3001]
