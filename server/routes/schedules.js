@@ -151,7 +151,7 @@ router.delete('/schedules/:id', async (req, res) => {
 router.get('/optimal-times/:sessionCode', async (req, res) => {
   try {
     const { sessionCode } = req.params;
-    const { duration = 60, notify } = req.query; // Duration in minutes, and optional notify flag
+    const { duration = 60 } = req.query; // Duration in minutes, and optional notify flag
     
     // Check if session exists
     const sessionCheck = await db.query(
@@ -168,33 +168,32 @@ router.get('/optimal-times/:sessionCode', async (req, res) => {
     
     // Find overlapping availability for all participants
     const result = await db.query(`
-      WITH user_intervals AS (
-        SELECT 
-          s.user_name, 
-          s.day_of_week, 
-          s.start_time, 
-          s.end_time,
-          (SELECT COUNT(DISTINCT user_name) FROM schedules WHERE session_code = $1) as total_users
-        FROM schedules s
-        WHERE s.session_code = $1
-      ),
-      time_slots AS (
+      WITH day_intervals AS (
         SELECT 
           day_of_week,
-          start_time,
-          end_time,
-          COUNT(DISTINCT user_name) as user_count,
-          total_users,
-          EXTRACT(EPOCH FROM (end_time - start_time)) / 60 AS slot_duration
-        FROM user_intervals
-        GROUP BY day_of_week, start_time, end_time, total_users
-        HAVING EXTRACT(EPOCH FROM (end_time - start_time)) / 60 >= $2
-        ORDER BY 
-          day_of_week, 
-          user_count DESC,
-          slot_duration DESC
+          MAX(start_time) AS common_start,
+          MIN(end_time) AS common_end,
+          COUNT(DISTINCT user_name) AS user_count,
+          (SELECT COUNT(DISTINCT user_name) 
+           FROM schedules 
+           WHERE session_code = $1 
+             AND day_of_week = s.day_of_week) AS total_users
+        FROM schedules s
+        WHERE session_code = $1
+        GROUP BY day_of_week
       )
-      SELECT * FROM time_slots;
+      SELECT
+        day_of_week,
+        common_start,
+        common_end,
+        EXTRACT(EPOCH FROM (common_end - common_start)) / 60 AS duration
+      FROM day_intervals
+      WHERE common_end > common_start
+        AND EXTRACT(EPOCH FROM (common_end - common_start)) / 60 >= $2
+        AND user_count = total_users
+      ORDER BY
+        day_of_week,
+        duration DESC;
     `, [sessionCode, duration]);
     
     const optimalTimes = result.rows;

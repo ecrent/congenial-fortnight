@@ -2,40 +2,6 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/database');
 
-// Get user by credentials
-router.get('/users', async (req, res) => {
-  try {
-    const { name, password } = req.params;
-    
-    const userCheck = await db.query(
-      'SELECT name FROM users WHERE name = $1 AND password = $2',
-      [name, password]
-    );
-    
-    if (userCheck.rows.length === 0) {
-      return res.status(404).json({
-        status: 'fail',
-        message: `User with name ${name} not found or expired`
-      });
-    }
-    else {
-      return res.status(200).json({
-        status: 'success',
-        data: {
-          user: userCheck.rows[0]
-        }
-      });
-    }
-
-  } catch (error) {
-    console.error('Database query error:', error);
-    res.status(500).json({
-      status: 'error',
-      message: 'Failed to fetch users',
-      details: error.message
-    });
-  }
-});
 
 // Register a new user
 router.post('/users', async (req, res) => {
