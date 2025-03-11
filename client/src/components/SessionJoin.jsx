@@ -1,12 +1,19 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SessionContext } from '../context/SessionContext';
 import Header from '../components/Header';
 
 const SessionJoin = () => {
   const [sessionCode, setSessionCode] = useState('');
-  const { createSession, joinSession, loading, error } = useContext(SessionContext);
+  const { createSession, joinSession, loading, error, user } = useContext(SessionContext);
   const navigate = useNavigate();
+
+  // Restrict access: Only a registered user may access /join
+  useEffect(() => {
+    if (!user) {
+      navigate('/'); // redirect to home page if not logged in
+    }
+  }, [user, navigate]);
 
   const handleCreate = async (e) => {
     e.preventDefault();

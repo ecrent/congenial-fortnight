@@ -7,10 +7,11 @@ const Home = () => {
     <div>
       <Header />
       <div className="text-center my-5">
-        <h2>Find the perfect meeting time with your group</h2>
-        <p className="lead">Create a session, share the session code, and easily find times when everyone is available.</p>
+        <h2>Meeting Time Finder</h2>
+        <p className="lead">Please login or register to continue.</p>
         <div className="mt-4">
-          <Link to="/join" className="btn btn-primary btn-lg">Start Scheduling</Link>
+          <Link to="/login" className="btn btn-primary me-2">Login</Link>
+          <Link to="/register" className="btn btn-success">Register</Link>
         </div>
       </div>
     </div>

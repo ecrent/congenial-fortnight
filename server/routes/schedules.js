@@ -134,15 +134,15 @@ router.delete('/schedules/:id', async (req, res) => {
 
 /**
  * Find optimal meeting times for a session
- * GET /api/v1/sessions/:sessionId/optimal-times
+ * GET /api/v1/optimal-times/:sessionId
  * 
  * This endpoint analyzes all participants' availability
  * and finds the best meeting times based on the required duration
  */
-router.get('/sessions/:sessionId/optimal-times', async (req, res) => {
+router.get('/optimal-times/:sessionId', async (req, res) => {
   try {
     const { sessionId } = req.params;
-    const { duration = 60 } = req.query; // Duration in minutes, default 60
+    const { duration = 60, notify } = req.query; // Duration in minutes, and optional notify flag
     
     // Check if session exists
     const sessionCheck = await db.query(
@@ -154,19 +154,6 @@ router.get('/sessions/:sessionId/optimal-times', async (req, res) => {
       return res.status(404).json({
         status: 'fail',
         message: `Meeting session with ID ${sessionId} not found or expired`
-      });
-    }
-    
-    // Get all participants in the meeting session
-    const usersResult = await db.query(
-      'SELECT id FROM users WHERE session_id = $1',
-      [sessionId]
-    );
-    
-    if (usersResult.rows.length === 0) {
-      return res.status(404).json({
-        status: 'fail',
-        message: 'No participants found in this meeting session'
       });
     }
     
@@ -196,17 +183,32 @@ router.get('/sessions/:sessionId/optimal-times', async (req, res) => {
         HAVING EXTRACT(EPOCH FROM (end_time - start_time)) / 60 >= $2
         ORDER BY 
           day_of_week, 
-          user_count DESC, -- Prioritize slots with more participants
-          slot_duration DESC -- Then prioritize longer slots
+          user_count DESC,
+          slot_duration DESC
       )
       SELECT * FROM time_slots;
     `, [sessionId, duration]);
     
+    const optimalTimes = result.rows;
+    
+    // If notify flag is true, send email notification to all users in the session
+    if (notify === 'true') {
+      // Retrieve users' email addresses for this session
+      const usersResult = await db.query(
+        'SELECT email FROM users WHERE session_id = $1',
+        [sessionId]
+      );
+      const emailNotification = require('../utils/emailNotification');
+      usersResult.rows.forEach(userRow => {
+        emailNotification.sendMeetingNotification(userRow.email, optimalTimes);
+      });
+    }
+    
     res.status(200).json({
       status: 'success',
-      results: result.rows.length,
+      results: optimalTimes.length,
       data: {
-        optimalTimes: result.rows
+        optimalTimes
       }
     });
   } catch (error) {

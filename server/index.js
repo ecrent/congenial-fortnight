@@ -2,14 +2,20 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 const port = 3000;
+const session = require('express-session');
+const passport = require('passport');
+
 // Import database configuration
 const db = require('./config/database');
 
+// Import Passport configuration (local strategy)
+require('./auth/passport');
 
 // Import routes
 const sessionRoutes = require('./routes/sessions');
 const userRoutes = require('./routes/users');
 const scheduleRoutes = require('./routes/schedules');
+const adminRoutes = require('./routes/admin'); // <-- added admin routes
 
 // List of allowed origins
 const allowedOrigins = [
@@ -31,6 +37,17 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 
+// Setup sessions; secret ideally comes from env variable
+app.use(session({
+  secret: 'your_secret_key',
+  resave: false,
+  saveUninitialized: false
+}));
+
+// Initialize Passport middleware
+app.use(passport.initialize());
+app.use(passport.session());
+
 // Log all requests for debugging
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.path} - Origin: ${req.headers.origin}`);
@@ -43,8 +60,8 @@ app.get('/', (req, res) => {
 });
 
 // Mount routes - fixed to prevent overlapping route issues
-app.use('/api/v1/sessions', sessionRoutes);
-app.use('/api/v1/users', userRoutes);
+app.use('/api/v1', sessionRoutes);
+app.use('/api/v1', userRoutes);
 app.use('/api/v1', scheduleRoutes);
 
 

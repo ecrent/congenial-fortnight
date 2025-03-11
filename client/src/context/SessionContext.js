@@ -50,6 +50,14 @@ export const SessionProvider = ({ children }) => {
       const response = await Scheduler.get(`/sessions/${sessionCode}`);
       const joinedSession = response.data.data.session;
       setSession(joinedSession);
+      // If a user is logged in, update their record with the joined session id
+      if (user) {
+        await Scheduler.put(`/users/${user.id}/session`, { session_id: joinedSession.id });
+        localStorage.setItem('sessionInfo', JSON.stringify({
+          session: joinedSession,
+          user: user
+        }));
+      }
       return joinedSession;
     } catch (err) {
       setError('Invalid session code or session expired');
@@ -60,19 +68,18 @@ export const SessionProvider = ({ children }) => {
     }
   };
 
-  // Register user within a session
-  const registerUser = async (name, sessionId) => {
+  // Update registerUser to remove session ID dependency.
+  const registerUser = async (name, email, password) => {
     setLoading(true);
     setError(null);
     try {
-      // Update URL to match server route
-      const response = await Scheduler.post(`/users/session/${sessionId}`, { name });
+      // Call the new endpoint that registers the user without session info.
+      const response = await Scheduler.post('/users', { name, email, password });
       const newUser = response.data.data.user;
       setUser(newUser);
       
-      // Store session info in local storage
+      // Store user info in local storage.
       localStorage.setItem('sessionInfo', JSON.stringify({
-        session,
         user: newUser
       }));
       
@@ -80,6 +87,29 @@ export const SessionProvider = ({ children }) => {
     } catch (err) {
       setError('Failed to register user');
       console.error('Error registering user:', err);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // NEW: Login user function using API endpoint
+  const loginUser = async (name, password) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await Scheduler.post('/users/login', { name, password });
+      const loggedUser = response.data.data.user;
+      setUser(loggedUser);
+      // Optionally update local storage
+      localStorage.setItem('sessionInfo', JSON.stringify({
+        session,
+        user: loggedUser
+      }));
+      return loggedUser;
+    } catch (err) {
+      setError('Failed to log in');
+      console.error('Error logging in:', err);
       return null;
     } finally {
       setLoading(false);
@@ -128,6 +158,7 @@ export const SessionProvider = ({ children }) => {
       createSession, 
       joinSession, 
       registerUser,
+      loginUser, // <-- added loginUser
       setUserReady,
       clearSession 
     }}>

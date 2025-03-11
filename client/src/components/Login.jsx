@@ -1,21 +1,19 @@
 import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SessionContext } from '../context/SessionContext';
-import Header from '../components/Header';
+import Header from './Header';
 
-const UserRegistration = () => {
-  const { registerUser, loading } = useContext(SessionContext);
+const Login = () => {
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const { loginUser, loading, error } = useContext(SessionContext);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name.trim() || !email.trim() || !password.trim()) return;
-    // Register the user (no session info) and then navigate to join page.
-    const newUser = await registerUser(name, email, password);
-    if (newUser) {
+    if (!name.trim() || !password.trim()) return;
+    const user = await loginUser(name, password);
+    if (user) {
       navigate('/join');
     }
   };
@@ -24,14 +22,15 @@ const UserRegistration = () => {
     <div>
       <Header />
       <div className="card p-4 my-4 mx-auto" style={{ maxWidth: '500px' }}>
-        <h2 className="text-center mb-4">Register Your Account</h2>
+        <h2 className="text-center mb-4">Login</h2>
+        {error && <div className="alert alert-danger">{error}</div>}
         <form onSubmit={handleSubmit}>
           <div className="mb-3">
-            <label htmlFor="userName" className="form-label">Your Name</label>
+            <label htmlFor="loginName" className="form-label">Name</label>
             <input
               type="text"
               className="form-control"
-              id="userName"
+              id="loginName"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Enter your name"
@@ -39,23 +38,11 @@ const UserRegistration = () => {
             />
           </div>
           <div className="mb-3">
-            <label htmlFor="userEmail" className="form-label">Email Address</label>
-            <input
-              type="email"
-              className="form-control"
-              id="userEmail"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Enter your email"
-              required
-            />
-          </div>
-          <div className="mb-3">
-            <label htmlFor="userPassword" className="form-label">Password</label>
+            <label htmlFor="loginPassword" className="form-label">Password</label>
             <input
               type="password"
               className="form-control"
-              id="userPassword"
+              id="loginPassword"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
@@ -66,9 +53,9 @@ const UserRegistration = () => {
             <button 
               type="submit" 
               className="btn btn-primary" 
-              disabled={loading || !name.trim() || !email.trim() || !password.trim()}
+              disabled={loading || !name.trim() || !password.trim()}
             >
-              {loading ? 'Registering...' : 'Continue'}
+              {loading ? 'Logging in...' : 'Login'}
             </button>
           </div>
         </form>
@@ -77,4 +64,4 @@ const UserRegistration = () => {
   );
 };
 
-export default UserRegistration;
+export default Login;
