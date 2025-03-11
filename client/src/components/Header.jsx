@@ -12,13 +12,16 @@ const Header = () => {
   };
 
   return (
-    <header role="banner" className="container-fluid d-flex justify-content-between align-items-center">
-      <h1 className="font-weight-light display-1 text-center">Meeting Time Finder</h1>
-      {user && (
-        <button className="btn btn-secondary" onClick={handleLogout}>
-          Logout
-        </button>
-      )}
+    <header role="banner" className="mb-4">
+      <div className="d-flex justify-content-between align-items-center py-3">
+        <h1 className="font-weight-light">Meeting Time Finder</h1>
+        {user && (
+          <button className="btn btn-secondary" onClick={handleLogout}>
+            Logout
+          </button>
+        )}
+      </div>
+      <hr className="mb-4" />
     </header>
   );
 };

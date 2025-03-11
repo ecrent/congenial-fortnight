@@ -4,29 +4,29 @@ const db = require('../config/database');
 
 /**
  * Get all availability entries for a user
- * GET /api/v1/users/:userId/schedules
+ * GET /api/v1/schedules/user/:name
  */
-router.get('/users/:userId/schedules', async (req, res) => {
+router.get('/schedules/user/:name', async (req, res) => {
   try {
-    const { userId } = req.params;
+    const { name } = req.params;
     
     // Check if user exists
     const userCheck = await db.query(
-      'SELECT id FROM users WHERE id = $1',
-      [userId]
+      'SELECT name FROM users WHERE name = $1',
+      [name]
     );
     
     if (userCheck.rows.length === 0) {
       return res.status(404).json({
         status: 'fail',
-        message: `User with ID ${userId} not found`
+        message: `User with name ${name} not found`
       });
     }
     
     // Get all availability entries for this user
     const result = await db.query(
-      'SELECT * FROM schedules WHERE user_id = $1 ORDER BY day_of_week, start_time',
-      [userId]
+      'SELECT * FROM schedules WHERE user_name = $1 ORDER BY day_of_week, start_time',
+      [name]
     );
     
     res.status(200).json({
@@ -47,31 +47,43 @@ router.get('/users/:userId/schedules', async (req, res) => {
 });
 
 /**
- * Add an availability entry for a user
- * POST /api/v1/users/:userId/schedules
+ * Add an availability entry for a user in a specific session
+ * POST /api/v1/schedules
  */
-router.post('/users/:userId/schedules', async (req, res) => {
+router.post('/schedules', async (req, res) => {
   try {
-    const { userId } = req.params;
-    const { day_of_week, start_time, end_time } = req.body;
+    const { session_code, user_name, day_of_week, start_time, end_time } = req.body;
+    
+    // Check if session exists
+    const sessionCheck = await db.query(
+      'SELECT session_code FROM sessions WHERE session_code = $1 AND expires_at > NOW()',
+      [session_code]
+    );
+    
+    if (sessionCheck.rows.length === 0) {
+      return res.status(404).json({
+        status: 'fail',
+        message: `Session with code ${session_code} not found or expired`
+      });
+    }
     
     // Check if user exists
     const userCheck = await db.query(
-      'SELECT id FROM users WHERE id = $1',
-      [userId]
+      'SELECT name FROM users WHERE name = $1',
+      [user_name]
     );
     
     if (userCheck.rows.length === 0) {
       return res.status(404).json({
         status: 'fail',
-        message: `User with ID ${userId} not found`
+        message: `User with name ${user_name} not found`
       });
     }
     
     // Create the availability entry
     const result = await db.query(
-      'INSERT INTO schedules (user_id, day_of_week, start_time, end_time) VALUES ($1, $2, $3, $4) RETURNING *',
-      [userId, day_of_week, start_time, end_time]
+      'INSERT INTO schedules (session_code, user_name, day_of_week, start_time, end_time) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [session_code, user_name, day_of_week, start_time, end_time]
     );
     
     res.status(201).json({
@@ -134,26 +146,23 @@ router.delete('/schedules/:id', async (req, res) => {
 
 /**
  * Find optimal meeting times for a session
- * GET /api/v1/optimal-times/:sessionId
- * 
- * This endpoint analyzes all participants' availability
- * and finds the best meeting times based on the required duration
+ * GET /api/v1/optimal-times/:sessionCode
  */
-router.get('/optimal-times/:sessionId', async (req, res) => {
+router.get('/optimal-times/:sessionCode', async (req, res) => {
   try {
-    const { sessionId } = req.params;
+    const { sessionCode } = req.params;
     const { duration = 60, notify } = req.query; // Duration in minutes, and optional notify flag
     
     // Check if session exists
     const sessionCheck = await db.query(
-      'SELECT id FROM sessions WHERE id = $1 AND expires_at > NOW()',
-      [sessionId]
+      'SELECT session_code FROM sessions WHERE session_code = $1 AND expires_at > NOW()',
+      [sessionCode]
     );
     
     if (sessionCheck.rows.length === 0) {
       return res.status(404).json({
         status: 'fail',
-        message: `Meeting session with ID ${sessionId} not found or expired`
+        message: `Session with code ${sessionCode} not found or expired`
       });
     }
     
@@ -161,21 +170,20 @@ router.get('/optimal-times/:sessionId', async (req, res) => {
     const result = await db.query(`
       WITH user_intervals AS (
         SELECT 
-          u.id AS user_id, 
+          s.user_name, 
           s.day_of_week, 
           s.start_time, 
           s.end_time,
-          (SELECT COUNT(*) FROM users WHERE session_id = $1) as total_users
+          (SELECT COUNT(DISTINCT user_name) FROM schedules WHERE session_code = $1) as total_users
         FROM schedules s
-        JOIN users u ON s.user_id = u.id
-        WHERE u.session_id = $1
+        WHERE s.session_code = $1
       ),
       time_slots AS (
         SELECT 
           day_of_week,
           start_time,
           end_time,
-          COUNT(DISTINCT user_id) as user_count,
+          COUNT(DISTINCT user_name) as user_count,
           total_users,
           EXTRACT(EPOCH FROM (end_time - start_time)) / 60 AS slot_duration
         FROM user_intervals
@@ -187,23 +195,11 @@ router.get('/optimal-times/:sessionId', async (req, res) => {
           slot_duration DESC
       )
       SELECT * FROM time_slots;
-    `, [sessionId, duration]);
+    `, [sessionCode, duration]);
     
     const optimalTimes = result.rows;
     
-    // If notify flag is true, send email notification to all users in the session
-    if (notify === 'true') {
-      // Retrieve users' email addresses for this session
-      const usersResult = await db.query(
-        'SELECT email FROM users WHERE session_id = $1',
-        [sessionId]
-      );
-      const emailNotification = require('../utils/emailNotification');
-      usersResult.rows.forEach(userRow => {
-        emailNotification.sendMeetingNotification(userRow.email, optimalTimes);
-      });
-    }
-    
+
     res.status(200).json({
       status: 'success',
       results: optimalTimes.length,

@@ -28,7 +28,6 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- Add indexes for users
-CREATE INDEX idx_users_session ON users(session_id);
 CREATE INDEX idx_users_ready ON users(is_ready);
 
 -- 3. Create schedules table 

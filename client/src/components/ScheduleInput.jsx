@@ -32,7 +32,7 @@ const ScheduleInput = () => {
       
       try {
         setLoading(true);
-        const response = await Scheduler.get(`/users/${user.id}/schedules`);
+        const response = await Scheduler.get(`/schedules/user/${user.name}`);
         setSchedules(response.data.data.schedules || []);
       } catch (err) {
         console.error('Error fetching schedules:', err);
@@ -51,8 +51,8 @@ const ScheduleInput = () => {
     
     const fetchUsers = async () => {
       try {
-        // Update the URL to match the server route
-        const response = await Scheduler.get(`/users/session/${session.id}`);
+        // Fix the URL to use session_code instead of id
+        const response = await Scheduler.get(`/users/session/${session.session_code}`);
         setUsersList(response.data.data.users || []);
         
         // If all users are ready, go to results page
@@ -87,7 +87,13 @@ const ScheduleInput = () => {
     
     try {
       setLoading(true);
-      const response = await Scheduler.post(`/users/${user.id}/schedules`, formData);
+      const response = await Scheduler.post(`/schedules`, {
+        session_code: session.session_code,
+        user_name: user.name,
+        day_of_week: formData.day_of_week,
+        start_time: formData.start_time,
+        end_time: formData.end_time
+      });
       setSchedules([...schedules, response.data.data.schedule]);
       // Reset end time for next entry
       setFormData({
@@ -120,7 +126,8 @@ const ScheduleInput = () => {
     
     try {
       setLoading(true);
-      await Scheduler.put(`/users/${user.id}/ready`, { isReady: true });
+      // Fix endpoint to use user.name instead of user.id
+      await Scheduler.put(`/users/${user.name}/ready`, { isReady: true });
       // Update context to reflect the user is ready
       setUserReady(true);
     } catch (err) {

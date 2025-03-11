@@ -19,7 +19,7 @@ const SessionJoin = () => {
     e.preventDefault();
     const session = await createSession();
     if (session) {
-      navigate('/register');
+      navigate('/schedule'); // Changed from '/register' to '/schedule'
     }
   };
 
@@ -29,7 +29,7 @@ const SessionJoin = () => {
     
     const session = await joinSession(sessionCode);
     if (session) {
-      navigate('/register');
+      navigate('/schedule'); // Changed from '/register' to '/schedule'
     }
   };
 

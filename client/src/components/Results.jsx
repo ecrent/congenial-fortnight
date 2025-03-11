@@ -27,8 +27,8 @@ const Results = () => {
     
     const fetchUsers = async () => {
       try {
-        // Update URL to match the server endpoint
-        const response = await Scheduler.get(`/users/session/${session.id}`);
+        // Fix the URL to use session_code instead of id
+        const response = await Scheduler.get(`/users/session/${session.session_code}`);
         setUsersList(response.data.data.users || []);
         
         // If not all users are ready, go back to schedule input
@@ -52,7 +52,7 @@ const Results = () => {
       
       try {
         setLoading(true);
-        const response = await Scheduler.get(`/sessions/${session.id}/optimal-times?duration=${duration}`);
+        const response = await Scheduler.get(`/optimal-times/${session.session_code}?duration=${duration}`);
         setOptimalTimes(response.data.data.optimalTimes || []);
       } catch (err) {
         console.error('Error fetching optimal times:', err);

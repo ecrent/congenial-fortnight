@@ -8,11 +8,9 @@ function generateSessionCode() {
   return crypto.randomBytes(4).toString('hex').toUpperCase().substring(0, 8);
 }
 
-/**
- * Get all sessions 
- * GET /api/v1/sessions
- */
-router.get('/', async (req, res) => {
+
+
+router.get('/sessions', async (req, res) => {
   try {
     // Get all active sessions
     const result = await db.query(
@@ -36,11 +34,8 @@ router.get('/', async (req, res) => {
   }
 });
 
-/**
- * Create a new session
- * POST /api/v1/sessions
- */
-router.post('/', async (req, res) => {
+
+router.post('/sessions', async (req, res) => {
   try {
     // Generate a unique session code
     let sessionCode;
@@ -78,11 +73,9 @@ router.post('/', async (req, res) => {
   }
 });
 
-/**
- * Get session by code
- * GET /api/v1/sessions/:code
- */
-router.get('/:code', async (req, res) => {
+
+
+router.get('/sessions/:code', async (req, res) => {
   try {
     const { code } = req.params;
     
@@ -98,13 +91,15 @@ router.get('/:code', async (req, res) => {
         message: 'Session not found or has expired'
       });
     }
-    
+    else {
     res.status(200).json({
       status: 'success',
       data: {
         session: result.rows[0]
       }
     });
+  }
+  
   } catch (error) {
     console.error('Error fetching session:', error);
     res.status(500).json({

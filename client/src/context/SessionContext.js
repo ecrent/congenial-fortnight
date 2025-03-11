@@ -4,12 +4,13 @@ import Scheduler from '../apis/Scheduler';
 export const SessionContext = createContext();
 
 export const SessionProvider = ({ children }) => {
+  // Core state variables
   const [session, setSession] = useState(null);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Check local storage for existing session on mount
+  // Check local storage for existing user and session on component mount
   useEffect(() => {
     const storedSession = localStorage.getItem('sessionInfo');
     if (storedSession) {
@@ -24,68 +25,28 @@ export const SessionProvider = ({ children }) => {
     }
   }, []);
 
-  // Create a new session
-  const createSession = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await Scheduler.post('/sessions');
-      const newSession = response.data.data.session;
-      setSession(newSession);
-      return newSession;
-    } catch (err) {
-      setError('Failed to create session');
-      console.error('Error creating session:', err);
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Join an existing session
-  const joinSession = async (sessionCode) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await Scheduler.get(`/sessions/${sessionCode}`);
-      const joinedSession = response.data.data.session;
-      setSession(joinedSession);
-      // If a user is logged in, update their record with the joined session id
-      if (user) {
-        await Scheduler.put(`/users/${user.id}/session`, { session_id: joinedSession.id });
-        localStorage.setItem('sessionInfo', JSON.stringify({
-          session: joinedSession,
-          user: user
-        }));
-      }
-      return joinedSession;
-    } catch (err) {
-      setError('Invalid session code or session expired');
-      console.error('Error joining session:', err);
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Update registerUser to remove session ID dependency.
+  // Register a new user (no session needed initially)
   const registerUser = async (name, email, password) => {
     setLoading(true);
     setError(null);
     try {
-      // Call the new endpoint that registers the user without session info.
-      const response = await Scheduler.post('/users', { name, email, password });
+      // Call the updated user registration endpoint
+      const response = await Scheduler.post('/users', { 
+        name, 
+        email, 
+        password 
+      });
       const newUser = response.data.data.user;
       setUser(newUser);
       
-      // Store user info in local storage.
+      // Store user info in local storage without session
       localStorage.setItem('sessionInfo', JSON.stringify({
         user: newUser
       }));
       
       return newUser;
     } catch (err) {
-      setError('Failed to register user');
+      setError(err.response?.data?.message || 'Failed to register user');
       console.error('Error registering user:', err);
       return null;
     } finally {
@@ -93,7 +54,7 @@ export const SessionProvider = ({ children }) => {
     }
   };
 
-  // NEW: Login user function using API endpoint
+  // Login existing user
   const loginUser = async (name, password) => {
     setLoading(true);
     setError(null);
@@ -101,14 +62,15 @@ export const SessionProvider = ({ children }) => {
       const response = await Scheduler.post('/users/login', { name, password });
       const loggedUser = response.data.data.user;
       setUser(loggedUser);
-      // Optionally update local storage
+      
+      // Store user info in local storage without session yet
       localStorage.setItem('sessionInfo', JSON.stringify({
-        session,
         user: loggedUser
       }));
+      
       return loggedUser;
     } catch (err) {
-      setError('Failed to log in');
+      setError(err.response?.data?.message || 'Failed to log in');
       console.error('Error logging in:', err);
       return null;
     } finally {
@@ -116,12 +78,101 @@ export const SessionProvider = ({ children }) => {
     }
   };
 
-  // Update user ready status
+  // Create a new session
+  const createSession = async () => {
+    if (!user) {
+      setError('You must be logged in to create a session');
+      return null;
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await Scheduler.post('/sessions');
+      const newSession = response.data.data.session;
+      setSession(newSession);
+      
+      // Update localStorage with both user and session
+      localStorage.setItem('sessionInfo', JSON.stringify({
+        session: newSession,
+        user
+      }));
+      
+      return newSession;
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to create session');
+      console.error('Error creating session:', err);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Join existing session by code
+  const joinSession = async (sessionCode) => {
+    if (!user) {
+      setError('You must be logged in to join a session');
+      return null;
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await Scheduler.get(`/sessions/${sessionCode}`);
+      const joinedSession = response.data.data.session;
+      setSession(joinedSession);
+      
+      // Update localStorage with both user and session
+      localStorage.setItem('sessionInfo', JSON.stringify({
+        session: joinedSession,
+        user
+      }));
+      
+      return joinedSession;
+    } catch (err) {
+      setError(err.response?.data?.message || 'Invalid session code or session expired');
+      console.error('Error joining session:', err);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Add schedule (availability) for current user in current session
+  const addSchedule = async (day_of_week, start_time, end_time) => {
+    if (!user || !session) {
+      setError('User and session required to add availability');
+      return null;
+    }
+    
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await Scheduler.post('/schedules', {
+        session_code: session.session_code,
+        user_name: user.name,
+        day_of_week,
+        start_time,
+        end_time
+      });
+      
+      return response.data.data.schedule;
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to add availability');
+      console.error('Error adding schedule:', err);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Update user ready status - using name instead of ID
   const setUserReady = async (isReady) => {
     if (!user) return false;
     
     try {
-      const response = await Scheduler.put(`/users/${user.id}/ready`, { isReady });
+      // Updated to use name instead of ID
+      const response = await Scheduler.put(`/users/${user.name}/ready`, { isReady });
       const updatedUser = response.data.data.user;
       
       // Update user in state
@@ -142,6 +193,23 @@ export const SessionProvider = ({ children }) => {
     }
   };
 
+  // Get user schedules
+  const getUserSchedules = async () => {
+    if (!user) {
+      setError('User not logged in');
+      return [];
+    }
+    
+    try {
+      const response = await Scheduler.get(`/schedules/user/${user.name}`);
+      return response.data.data.schedules || [];
+    } catch (err) {
+      console.error('Error fetching user schedules:', err);
+      setError('Failed to fetch your schedules');
+      return [];
+    }
+  };
+
   // Clear session data (logout)
   const clearSession = () => {
     localStorage.removeItem('sessionInfo');
@@ -154,11 +222,13 @@ export const SessionProvider = ({ children }) => {
       session, 
       user, 
       loading, 
-      error, 
+      error,
+      registerUser,
+      loginUser,
       createSession, 
       joinSession, 
-      registerUser,
-      loginUser, // <-- added loginUser
+      addSchedule,
+      getUserSchedules,
       setUserReady,
       clearSession 
     }}>
