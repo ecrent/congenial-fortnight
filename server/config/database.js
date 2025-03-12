@@ -10,8 +10,32 @@ const pool = new Pool({
   port: process.env.DB_PORT || 5432,
 });
 
+// Transaction support
+const transaction = async (callback) => {
+  const client = await pool.connect();
+  
+  try {
+    await client.query('BEGIN');
+    const result = await callback(client);
+    await client.query('COMMIT');
+    return result;
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+};
+
 // Export functions to use in routes
 module.exports = {
+  // Simple query function
   query: (text, params) => pool.query(text, params),
+  
+  // Client with transaction support
+  client: {
+    query: (text, params) => pool.query(text, params),
+    transaction
+  },
   pool
 };

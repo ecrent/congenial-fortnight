@@ -4,12 +4,12 @@ const db = require('../config/database');
 
 
 // Register a new user
-router.post('/users', async (req, res) => {
+router.post('/users/register', async (req, res) => {
   try {
     const { name, email, password } = req.body;
     
     const nameCheck = await db.query(
-      'SELECT name FROM users WHERE name = $1',
+      'SELECT name FROM users WHERE name = $1 ',
       [name]
     );
     
@@ -19,8 +19,21 @@ router.post('/users', async (req, res) => {
         message: `User with name ${name} already exists`
       });
     }
+    	
+    const emailCheck = await db.query(
+      'SELECT email FROM users WHERE email = $1 ',
+      [email]
+    );
     
-    const result = await db.query(
+    if (emailCheck.rows.length > 0) {
+      return res.status(400).json({
+        status: 'fail',
+        message: `This email ${email} is already registered`
+      });
+    }
+
+    
+    const result = await db.client.query(
       'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *',
       [name, email, password]
     );
@@ -77,7 +90,7 @@ router.post('/users/login', async (req, res) => {
 });
 
 // Add ready status update endpoint (using name instead of ID)
-router.put('/users/:name/ready', async (req, res) => {
+router.put('/users/:name', async (req, res) => {
   try {
     const { name } = req.params;
     const { isReady } = req.body;
