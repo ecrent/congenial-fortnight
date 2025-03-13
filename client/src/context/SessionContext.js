@@ -12,7 +12,7 @@ export const SessionProvider = ({ children }) => {
 
   // Check local storage for existing user and session on component mount
   useEffect(() => {
-    const storedSession = localStorage.getItem('sessionInfo');
+    const storedSession = localStorage.getItem('info');
     if (storedSession) {
       try {
         const sessionData = JSON.parse(storedSession);
@@ -20,7 +20,7 @@ export const SessionProvider = ({ children }) => {
         setUser(sessionData.user);
       } catch (err) {
         console.error('Error parsing stored session:', err);
-        localStorage.removeItem('sessionInfo');
+        localStorage.removeItem('info');
       }
     }
   }, []);
@@ -31,7 +31,7 @@ export const SessionProvider = ({ children }) => {
     setError(null);
     try {
       // Call the updated user registration endpoint
-      const response = await Scheduler.post('/users', { 
+      const response = await Scheduler.post('/users/register', { 
         name, 
         email, 
         password 
@@ -40,7 +40,7 @@ export const SessionProvider = ({ children }) => {
       setUser(newUser);
       
       // Store user info in local storage without session
-      localStorage.setItem('sessionInfo', JSON.stringify({
+      localStorage.setItem('info', JSON.stringify({
         user: newUser
       }));
       
@@ -64,7 +64,7 @@ export const SessionProvider = ({ children }) => {
       setUser(loggedUser);
       
       // Store user info in local storage without session yet
-      localStorage.setItem('sessionInfo', JSON.stringify({
+      localStorage.setItem('info', JSON.stringify({
         user: loggedUser
       }));
       
@@ -93,7 +93,7 @@ export const SessionProvider = ({ children }) => {
       setSession(newSession);
       
       // Update localStorage with both user and session
-      localStorage.setItem('sessionInfo', JSON.stringify({
+      localStorage.setItem('info', JSON.stringify({
         session: newSession,
         user
       }));
@@ -123,7 +123,7 @@ export const SessionProvider = ({ children }) => {
       setSession(joinedSession);
       
       // Update localStorage with both user and session
-      localStorage.setItem('sessionInfo', JSON.stringify({
+      localStorage.setItem('info', JSON.stringify({
         session: joinedSession,
         user
       }));
@@ -180,7 +180,7 @@ export const SessionProvider = ({ children }) => {
       
       // Update localStorage
       if (session) {
-        localStorage.setItem('sessionInfo', JSON.stringify({
+        localStorage.setItem('info', JSON.stringify({
           session,
           user: updatedUser
         }));
@@ -210,9 +210,48 @@ export const SessionProvider = ({ children }) => {
     }
   };
 
+  // Get user's active sessions
+  const getUserSessions = async () => {
+    if (!user) {
+      setError('User not logged in');
+      return [];
+    }
+    
+    try {
+      const response = await Scheduler.get(`/sessions/user/${user.name}`);
+      return response.data.data.sessions || [];
+    } catch (err) {
+      console.error('Error fetching user sessions:', err);
+      return [];
+    }
+  };
+
+  // Leave a session
+  const leaveSession = async (sessionCode) => {
+    if (!user) {
+      setError('User not logged in');
+      return false;
+    }
+    
+    try {
+      await Scheduler.delete(`/sessions/${sessionCode}/users/${user.name}`);
+      
+      // If the current session is the one being left, clear it
+      if (session && session.session_code === sessionCode) {
+        setSession(null);
+        localStorage.setItem('info', JSON.stringify({ user }));
+      }
+      
+      return true;
+    } catch (err) {
+      console.error('Error leaving session:', err);
+      return false;
+    }
+  };
+
   // Clear session data (logout)
   const clearSession = () => {
-    localStorage.removeItem('sessionInfo');
+    localStorage.removeItem('info');
     setSession(null);
     setUser(null);
   };
@@ -226,7 +265,9 @@ export const SessionProvider = ({ children }) => {
       registerUser,
       loginUser,
       createSession, 
-      joinSession, 
+      joinSession,
+      leaveSession,
+      getUserSessions,
       addSchedule,
       getUserSchedules,
       setUserReady,

@@ -90,12 +90,12 @@ router.post('/users/login', async (req, res) => {
 });
 
 // Add ready status update endpoint (using name instead of ID)
-router.put('/users/:name', async (req, res) => {
+router.put('/users/:name/ready', async (req, res) => {
   try {
     const { name } = req.params;
     const { isReady } = req.body;
     
-    const result = await db.query(
+    const result = await db.client.query(
       'UPDATE users SET is_ready = $1 WHERE name = $2 RETURNING *',
       [isReady, name]
     );

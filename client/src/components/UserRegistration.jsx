@@ -16,7 +16,7 @@ const UserRegistration = () => {
     // Register the user (no session info) and then navigate to join page.
     const newUser = await registerUser(name, email, password);
     if (newUser) {
-      navigate('/join');
+      navigate('/join'); // After registration, user is directed to the join session page
     }
   };
 

@@ -8,7 +8,7 @@ const Header = () => {
 
   const handleLogout = () => {
     clearSession();
-    navigate('/'); // Changed from '/join' to home page
+    navigate('/'); // 
   };
 
   return (

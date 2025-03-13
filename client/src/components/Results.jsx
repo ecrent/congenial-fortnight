@@ -151,7 +151,14 @@ const Results = () => {
                     <td>{getDayName(parseInt(time.day_of_week))}</td>
                     <td>{formatTime(time.start_time)}</td>
                     <td>{formatTime(time.end_time)}</td>
-                    <td>{time.user_count} / {time.total_users}</td>
+                    <td>
+                      {time.user_count} / {time.total_users}
+                      {time.available_users && (
+                        <span className="ms-2 text-muted">
+                          ({time.available_users.join(', ')})
+                        </span>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>

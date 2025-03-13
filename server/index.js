@@ -10,6 +10,7 @@ const db = require('./config/database');
 const sessionRoutes = require('./routes/sessions');
 const userRoutes = require('./routes/users');
 const scheduleRoutes = require('./routes/schedules');
+const optimalTimesRoutes = require('./routes/optimalTimes'); // Add new import
 
 // List of allowed origins
 const allowedOrigins = [
@@ -46,6 +47,7 @@ app.get('/', (req, res) => {
 app.use('/api/v1', sessionRoutes);
 app.use('/api/v1', userRoutes);
 app.use('/api/v1', scheduleRoutes);
+app.use('/api/v1', optimalTimesRoutes); // Mount the new routes
 
 // 404 handler for undefined routes
 app.use((req, res) => {

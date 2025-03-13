@@ -14,7 +14,7 @@ const Login = () => {
     if (!name.trim() || !password.trim()) return;
     const user = await loginUser(name, password);
     if (user) {
-      navigate('/join');
+      navigate('/join'); // After login, user is directed to the join session page
     }
   };
 

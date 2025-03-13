@@ -18,14 +18,16 @@ const ScheduleInput = () => {
   
   const navigate = useNavigate();
   
-  // Redirect if no session or user
+  // When the component mounts, these useEffect hooks run:
+
+  // 1. First, this useEffect checks if user and session exist in context
   useEffect(() => {
     if (!session || !user) {
-      navigate('/join');
+      navigate('/join'); // Redirects if requirements not met
     }
   }, [session, user, navigate]);
   
-  // Fetch user's schedules
+  // 2. This useEffect loads the user's existing schedules from the backend
   useEffect(() => {
     const fetchSchedules = async () => {
       if (!user) return;
@@ -42,20 +44,19 @@ const ScheduleInput = () => {
       }
     };
     
-    fetchSchedules();
+    fetchSchedules(); // Executes the API call
   }, [user]);
 
-  // Fetch all users in the session to check ready status
+  // 3. This useEffect sets up polling to check other users' ready status
   useEffect(() => {
     if (!session) return;
     
     const fetchUsers = async () => {
       try {
-        // Fix the URL to use session_code instead of id
         const response = await Scheduler.get(`/users/session/${session.session_code}`);
         setUsersList(response.data.data.users || []);
         
-        // If all users are ready, go to results page
+        // If all users are ready, automatically navigate to results
         const allUsers = response.data.data.users || [];
         const readyUsers = allUsers.filter(u => u.is_ready);
         if (allUsers.length > 0 && readyUsers.length === allUsers.length) {
@@ -66,10 +67,11 @@ const ScheduleInput = () => {
       }
     };
 
-    // Poll for user status every 5 seconds
+    // Set up polling - every 5 seconds
     const interval = setInterval(fetchUsers, 5000);
-    fetchUsers(); // Initial fetch
+    fetchUsers(); // Initial fetch right away
     
+    // Cleanup function to clear interval when component unmounts
     return () => clearInterval(interval);
   }, [session, navigate]);
   
