@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/database');
-
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 
 // Register a new user
 router.post('/users/register', async (req, res) => {
@@ -9,7 +10,7 @@ router.post('/users/register', async (req, res) => {
     const { name, email, password } = req.body;
     
     const nameCheck = await db.query(
-      'SELECT name FROM users WHERE name = $1 ',
+      'SELECT name FROM users WHERE name = $1',
       [name]
     );
     
@@ -21,7 +22,7 @@ router.post('/users/register', async (req, res) => {
     }
     	
     const emailCheck = await db.query(
-      'SELECT email FROM users WHERE email = $1 ',
+      'SELECT email FROM users WHERE email = $1',
       [email]
     );
     
@@ -31,11 +32,13 @@ router.post('/users/register', async (req, res) => {
         message: `This email ${email} is already registered`
       });
     }
-
+    
+    // Hash the password before storing it.
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
     
     const result = await db.client.query(
       'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *',
-      [name, email, password]
+      [name, email, hashedPassword]
     );
     
     return res.status(201).json({
@@ -54,29 +57,38 @@ router.post('/users/register', async (req, res) => {
   }
 });
 
-// Add login endpoint
+// Add login endpoint (modified to use bcrypt for password verification)
 router.post('/users/login', async (req, res) => {
   try {
     const { name, password } = req.body;
     
-    // Validate credentials
-    const userCheck = await db.client.query(
-      'SELECT * FROM users WHERE name = $1 AND password = $2',
-      [name, password]
+    // Fetch user by name
+    const userResult = await db.client.query(
+      'SELECT * FROM users WHERE name = $1',
+      [name]
     );
     
-    if (userCheck.rows.length === 0) {
+    if (userResult.rows.length === 0) {
       return res.status(401).json({
         status: 'fail',
         message: 'Invalid username or password'
       });
     }
     
-    // Return the user if credentials match
+    const user = userResult.rows[0];
+    // Compare provided password with stored hashed password
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
+      return res.status(401).json({
+        status: 'fail',
+        message: 'Invalid username or password'
+      });
+    }
+    
     return res.status(200).json({
       status: 'success',
       data: {
-        user: userCheck.rows[0]
+        user: user
       }
     });
   } catch (error) {
