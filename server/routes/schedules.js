@@ -10,8 +10,8 @@ router.get('/schedules/user/:name', async (req, res) => {
   try {
     const { name } = req.params;
     
-    // Check if user exists
-    const userCheck = await db.query(
+    // Check if user exists - Using db.client.query consistently
+    const userCheck = await db.client.query(
       'SELECT name FROM users WHERE name = $1',
       [name]
     );
@@ -23,8 +23,8 @@ router.get('/schedules/user/:name', async (req, res) => {
       });
     }
     
-    // Get all availability entries for this user
-    const result = await db.query(
+    // Get all availability entries for this user - Using db.client.query consistently
+    const result = await db.client.query(
       'SELECT * FROM schedules WHERE user_name = $1 ORDER BY day_of_week, start_time',
       [name]
     );
@@ -68,7 +68,7 @@ router.post('/schedules', async (req, res) => {
     }
     
     // Check if user exists
-    const userCheck = await db.query(
+    const userCheck = await db.client.query(
       'SELECT name FROM users WHERE name = $1',
       [user_name]
     );

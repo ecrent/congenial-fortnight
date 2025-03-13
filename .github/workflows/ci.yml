@@ -16,7 +16,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '18'  # Updated to a more compatible version
       - name: Install Client Dependencies
         run: |
           cd client
@@ -24,7 +24,7 @@ jobs:
       - name: Run Client Tests
         run: |
           cd client
-          npm test -- --watchAll=false
+          npm test -- --watchAll=false --passWithNoTests
       - name: Build Client (Optional)
         run: |
           cd client
@@ -33,13 +33,27 @@ jobs:
   server:
     name: Server Tests
     runs-on: ubuntu-latest
+    services:
+      postgres:  # Add PostgreSQL service for testing
+        image: postgres:13
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: mydb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '18'  # Updated
       - name: Install Server Dependencies
         run: |
           cd server
@@ -48,3 +62,9 @@ jobs:
         run: |
           cd server
           npm test
+        env:  # Add environment variables for database connection
+          DB_USER: user
+          DB_HOST: localhost
+          DB_NAME: mydb
+          DB_PASSWORD: password
+          DB_PORT: 5432

@@ -25,7 +25,7 @@ router.get('/optimal-times/:sessionCode', async (req, res) => {
     }
     
     // Find overlapping availability for all participants
-    const result = await db.query(`
+    const result = await db.client.query(`
       WITH day_intervals AS (
         SELECT 
           day_of_week,
