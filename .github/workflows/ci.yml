@@ -24,7 +24,7 @@ jobs:
       - name: Run Client Tests
         run: |
           cd client
-          npm test -- --watchAll=false --passWithNoTests
+          NODE_OPTIONS=--openssl-legacy-provider npm test -- --watchAll=false --passWithNoTests
       - name: Build Client (Optional)
         run: |
           cd client

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import App from './App';
 
 // Mock the context to avoid router issues in tests
@@ -9,12 +9,14 @@ jest.mock('./context/SessionContext', () => ({
   },
 }));
 
-// Mock react-router-dom
+// Manual mock for react-router-dom without requireActual
 jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  BrowserRouter: ({ children }) => <div>{children}</div>,
-  Routes: ({ children }) => <div>{children}</div>,
-  Route: () => <div />,
+  BrowserRouter: ({ children }) => <div data-testid="browser-router">{children}</div>,
+  Routes: ({ children }) => <div data-testid="routes">{children}</div>,
+  Route: () => <div data-testid="route" />,
+  Link: ({ to, children }) => <a href={to} data-testid="link">{children}</a>,
+  useNavigate: () => jest.fn(),
+  useParams: () => ({}),
 }));
 
 test('renders without crashing', () => {
