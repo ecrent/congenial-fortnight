@@ -60,7 +60,7 @@ router.post('/users/login', async (req, res) => {
     const { name, password } = req.body;
     
     // Validate credentials
-    const userCheck = await db.query(
+    const userCheck = await db.client.query(
       'SELECT * FROM users WHERE name = $1 AND password = $2',
       [name, password]
     );

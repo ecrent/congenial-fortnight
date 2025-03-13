@@ -55,7 +55,7 @@ router.post('/schedules', async (req, res) => {
     const { session_code, user_name, day_of_week, start_time, end_time } = req.body;
     
     // Check if session exists
-    const sessionCheck = await db.query(
+    const sessionCheck = await db.client.query(
       'SELECT session_code FROM sessions WHERE session_code = $1 AND expires_at > NOW()',
       [session_code]
     );

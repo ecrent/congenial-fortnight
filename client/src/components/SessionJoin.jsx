@@ -116,6 +116,7 @@ const SessionJoin = () => {
                     />
                   </div>
                   <div className="d-grid mt-auto">
+                    <div></div> {/* Spacer */}
                     <button 
                       type="submit" 
                       className="btn btn-primary" 
@@ -169,7 +170,7 @@ const SessionJoin = () => {
                   <tr>
                     <th>Session Code</th>
                     <th>Participants</th>
-                    <th className="text-center">Actions</th>
+                    <th className="text-center">Leave Session</th>
                   </tr>
                 </thead>
                 <tbody>

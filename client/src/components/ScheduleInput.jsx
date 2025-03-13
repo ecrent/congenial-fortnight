@@ -8,6 +8,7 @@ const ScheduleInput = () => {
   const { session, user, setUserReady, loading: sessionLoading } = useContext(SessionContext);
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [toggling, setToggling] = useState(false); // New state for toggle operation
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
     day_of_week: 1, // Monday
@@ -126,17 +127,19 @@ const ScheduleInput = () => {
   const handleReadyClick = async () => {
     if (!user) return;
     
+    setToggling(true); // Disable button immediately and show message
     try {
-      setLoading(true);
-      // Fix endpoint to use user.name instead of user.id
-      await Scheduler.put(`/users/${user.name}/ready`, { isReady: true });
-      // Update context to reflect the user is ready
-      setUserReady(true);
+      const newReadyStatus = !isCurrentUserReady;
+      await Scheduler.put(`/users/${user.name}/ready`, { isReady: newReadyStatus });
+      setUserReady(newReadyStatus);
     } catch (err) {
-      console.error('Error marking user as ready:', err);
+      console.error('Error updating ready status:', err);
       setError('Failed to update ready status');
     } finally {
-      setLoading(false);
+      // Keep the button disabled and message shown for 3 seconds
+      setTimeout(() => {
+        setToggling(false);
+      }, 3000);
     }
   };
   
@@ -286,12 +289,15 @@ const ScheduleInput = () => {
         <div className="d-grid mt-4">
           <button 
             onClick={handleReadyClick} 
-            className="btn btn-success" 
-            disabled={loading || schedules.length === 0 || isCurrentUserReady}
+            className={`btn ${isCurrentUserReady ? 'btn-warning' : 'btn-success'}`}
+            disabled={ schedules.length === 0 || toggling}
           >
-            {isCurrentUserReady 
-              ? "You're Ready! Waiting for others..." 
-              : "I'm Done Adding My Availability"}
+            { toggling 
+                ? "Processing..." 
+                : (isCurrentUserReady 
+                    ? "I'm Not Ready Yet - Make Changes" 
+                    : "I'm Done Adding My Availability")
+            }
           </button>
         </div>
       </div>
