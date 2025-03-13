@@ -26,7 +26,7 @@
       "^react-router-dom$": "<rootDir>/node_modules/react-router-dom/dist/index.js"
     },
     "transformIgnorePatterns": [
-      "/node_modules/(?!react-router-dom)"
+      "/node_modules/(?!axios|react-router-dom)"
     ]
   },
   "eslintConfig": {
