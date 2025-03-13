@@ -22,7 +22,9 @@
     "eject": "react-scripts eject"
   },
   "jest": {
-    "testEnvironment": "jsdom",
+    "moduleNameMapper": {
+      "^react-router-dom$": "<rootDir>/node_modules/react-router-dom/dist/index.js"
+    },
     "transformIgnorePatterns": [
       "/node_modules/(?!react-router-dom)"
     ]
