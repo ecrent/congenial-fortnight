@@ -10,7 +10,6 @@ const Results = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [duration, setDuration] = useState(60); // Default duration in minutes
-  const [usersList, setUsersList] = useState([]);
   
   const navigate = useNavigate();
   
@@ -29,7 +28,6 @@ const Results = () => {
       try {
         // Fix the URL to use session_code instead of id
         const response = await Scheduler.get(`/users/session/${session.session_code}`);
-        setUsersList(response.data.data.users || []);
         
         // If not all users are ready, go back to schedule input
         const allUsers = response.data.data.users || [];
