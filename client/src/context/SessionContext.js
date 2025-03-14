@@ -9,22 +9,60 @@ export const SessionProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [initialLoading, setInitialLoading] = useState(true); // Add initialLoading state
+  const [initialLoading, setInitialLoading] = useState(true);
 
-  // Check local storage for existing user and session on component mount
+  // Check session storage for existing user data on component mount
   useEffect(() => {
-    const storedSession = localStorage.getItem('info');
-    if (storedSession) {
-      try {
-        const sessionData = JSON.parse(storedSession);
-        setSession(sessionData.session);
-        setUser(sessionData.user);
-      } catch (err) {
-        console.error('Error parsing stored session:', err);
-        localStorage.removeItem('info');
+    const loadUserFromTokens = async () => {
+      const accessToken = sessionStorage.getItem('accessToken');
+      const userData = sessionStorage.getItem('userData');
+      const sessionData = sessionStorage.getItem('sessionData');
+      
+      // Handle migration from localStorage to sessionStorage (backward compatibility)
+      if (!accessToken && localStorage.getItem('info')) {
+        try {
+          const storedData = JSON.parse(localStorage.getItem('info'));
+          if (storedData.user) {
+            // We found old localStorage data, set it in the state
+            setUser(storedData.user);
+            if (storedData.session) {
+              setSession(storedData.session);
+            }
+            
+            // We need to get new tokens for this user - must relogin
+            setError("Please login again to upgrade your account security");
+            
+            // Clear old data
+            localStorage.removeItem('info');
+          }
+        } catch (err) {
+          console.error('Error parsing localStorage data:', err);
+          localStorage.removeItem('info');
+        }
+      } else if (accessToken && userData) {
+        try {
+          // Parse the stored user data
+          const parsedUser = JSON.parse(userData);
+          setUser(parsedUser);
+          
+          // If there's also session data, parse and set it
+          if (sessionData) {
+            setSession(JSON.parse(sessionData));
+          }
+        } catch (err) {
+          console.error('Error parsing stored data:', err);
+          // Clear invalid data
+          sessionStorage.removeItem('accessToken');
+          sessionStorage.removeItem('refreshToken');
+          sessionStorage.removeItem('userData');
+          sessionStorage.removeItem('sessionData');
+        }
       }
-    }
-    setInitialLoading(false); // Mark initial loading as complete
+      
+      setInitialLoading(false);
+    };
+    
+    loadUserFromTokens();
   }, []);
 
   // Register a new user (no session needed initially)
@@ -38,14 +76,15 @@ export const SessionProvider = ({ children }) => {
         email, 
         password 
       });
-      const newUser = response.data.data.user;
+      
+      const { user: newUser, accessToken, refreshToken } = response.data.data;
+      
+      // Store tokens in sessionStorage (more secure than localStorage)
+      sessionStorage.setItem('accessToken', accessToken);
+      sessionStorage.setItem('refreshToken', refreshToken);
+      sessionStorage.setItem('userData', JSON.stringify(newUser));
+      
       setUser(newUser);
-      
-      // Store user info in local storage without session
-      localStorage.setItem('info', JSON.stringify({
-        user: newUser
-      }));
-      
       return newUser;
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to register user');
@@ -62,14 +101,14 @@ export const SessionProvider = ({ children }) => {
     setError(null);
     try {
       const response = await Scheduler.post('/users/login', { name, password });
-      const loggedUser = response.data.data.user;
+      const { user: loggedUser, accessToken, refreshToken } = response.data.data;
+      
+      // Store tokens in sessionStorage
+      sessionStorage.setItem('accessToken', accessToken);
+      sessionStorage.setItem('refreshToken', refreshToken);
+      sessionStorage.setItem('userData', JSON.stringify(loggedUser));
+      
       setUser(loggedUser);
-      
-      // Store user info in local storage without session yet
-      localStorage.setItem('info', JSON.stringify({
-        user: loggedUser
-      }));
-      
       return loggedUser;
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to log in');
@@ -94,11 +133,8 @@ export const SessionProvider = ({ children }) => {
       const newSession = response.data.data.session;
       setSession(newSession);
       
-      // Update localStorage with both user and session
-      localStorage.setItem('info', JSON.stringify({
-        session: newSession,
-        user
-      }));
+      // Store session data in sessionStorage
+      sessionStorage.setItem('sessionData', JSON.stringify(newSession));
       
       return newSession;
     } catch (err) {
@@ -124,11 +160,8 @@ export const SessionProvider = ({ children }) => {
       const joinedSession = response.data.data.session;
       setSession(joinedSession);
       
-      // Update localStorage with both user and session
-      localStorage.setItem('info', JSON.stringify({
-        session: joinedSession,
-        user
-      }));
+      // Store session data in sessionStorage
+      sessionStorage.setItem('sessionData', JSON.stringify(joinedSession));
       
       return joinedSession;
     } catch (err) {
@@ -177,16 +210,9 @@ export const SessionProvider = ({ children }) => {
       const response = await Scheduler.put(`/users/${user.name}/ready`, { isReady });
       const updatedUser = response.data.data.user;
       
-      // Update user in state
+      // Update user in state and sessionStorage
       setUser(updatedUser);
-      
-      // Update localStorage
-      if (session) {
-        localStorage.setItem('info', JSON.stringify({
-          session,
-          user: updatedUser
-        }));
-      }
+      sessionStorage.setItem('userData', JSON.stringify(updatedUser));
       
       return true;
     } catch (err) {
@@ -241,7 +267,7 @@ export const SessionProvider = ({ children }) => {
       // If the current session is the one being left, clear it
       if (session && session.session_code === sessionCode) {
         setSession(null);
-        localStorage.setItem('info', JSON.stringify({ user }));
+        sessionStorage.removeItem('sessionData');
       }
       
       return true;
@@ -253,7 +279,10 @@ export const SessionProvider = ({ children }) => {
 
   // Clear session data (logout)
   const clearSession = () => {
-    localStorage.removeItem('info');
+    sessionStorage.removeItem('accessToken');
+    sessionStorage.removeItem('refreshToken');
+    sessionStorage.removeItem('userData');
+    sessionStorage.removeItem('sessionData');
     setSession(null);
     setUser(null);
   };
@@ -263,7 +292,7 @@ export const SessionProvider = ({ children }) => {
       session, 
       user, 
       loading,
-      initialLoading, // Add initialLoading to the context value
+      initialLoading,
       error,
       registerUser,
       loginUser,

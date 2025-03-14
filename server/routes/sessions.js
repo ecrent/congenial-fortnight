@@ -2,15 +2,15 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/database');
 const crypto = require('crypto');
+const { authenticate } = require('../middleware/auth');
 
 // Helper function to generate a random session code (8 characters)
 function generateSessionCode() {
   return crypto.randomBytes(4).toString('hex').toUpperCase().substring(0, 8);
 }
 
-// Removed unused GET /sessions endpoint that listed all sessions
-
-router.post('/sessions', async (req, res) => {
+// Create a new session
+router.post('/sessions', authenticate, async (req, res) => {
   try {
     // Generate a unique session code
     let sessionCode;
@@ -48,7 +48,8 @@ router.post('/sessions', async (req, res) => {
   }
 });
 
-router.get('/sessions/:code', async (req, res) => {
+// Get specific session by code
+router.get('/sessions/:code', authenticate, async (req, res) => {
   try {
     const { code } = req.params;
     
@@ -64,15 +65,13 @@ router.get('/sessions/:code', async (req, res) => {
         message: 'Session not found or has expired'
       });
     }
-    else {
+    
     res.status(200).json({
       status: 'success',
       data: {
         session: result.rows[0]
       }
     });
-  }
-  
   } catch (error) {
     console.error('Error fetching session:', error);
     res.status(500).json({
@@ -84,7 +83,7 @@ router.get('/sessions/:code', async (req, res) => {
 });
 
 // Get all active sessions for a specific user
-router.get('/sessions/user/:name', async (req, res) => {
+router.get('/sessions/user/:name', authenticate, async (req, res) => {
   try {
     const { name } = req.params;
     
@@ -132,7 +131,7 @@ router.get('/sessions/user/:name', async (req, res) => {
 });
 
 // Remove a user from a session
-router.delete('/sessions/:code/users/:name', async (req, res) => {
+router.delete('/sessions/:code/users/:name', authenticate, async (req, res) => {
   try {
     const { code, name } = req.params;
     

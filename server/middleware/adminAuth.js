@@ -1,25 +1,38 @@
+const { verifyToken } = require('../utils/jwt');
 const db = require('../config/database');
 
 /**
  * Middleware to verify if the user is an admin
- * Requires the user's name to be passed in the request body or params
+ * Uses JWT token from Authorization header
  */
 const adminAuth = async (req, res, next) => {
   try {
-    // Get user name from request (could be in body, params, or query)
-    const userName = req.body.user_name || req.params.name || req.query.name;
-    
-    if (!userName) {
+    // Get token from authorization header
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.startsWith('Bearer ') 
+      ? authHeader.substring(7) 
+      : null;
+
+    if (!token) {
       return res.status(401).json({
         status: 'fail',
-        message: 'Authentication failed: No user provided'
+        message: 'Authentication failed: No token provided'
       });
     }
-    
+
+    // Verify token
+    const decoded = verifyToken(token);
+    if (!decoded) {
+      return res.status(401).json({
+        status: 'fail',
+        message: 'Authentication failed: Invalid or expired token'
+      });
+    }
+
     // Check if user exists and is an admin
     const result = await db.query(
-      'SELECT role FROM users WHERE name = $1',
-      [userName]
+      'SELECT role FROM users WHERE id = $1',
+      [decoded.id]
     );
     
     if (result.rows.length === 0) {
@@ -37,6 +50,7 @@ const adminAuth = async (req, res, next) => {
     }
     
     // User is an admin, proceed to next middleware/route handler
+    req.user = decoded;
     next();
   } catch (error) {
     console.error('Admin authentication error:', error);

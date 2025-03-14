@@ -3,6 +3,8 @@ const router = express.Router();
 const db = require('../config/database');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
+const { generateAccessToken, generateRefreshToken } = require('../utils/jwt');
+const { authenticate } = require('../middleware/auth');
 
 // Register a new user
 router.post('/users/register', async (req, res) => {
@@ -41,10 +43,24 @@ router.post('/users/register', async (req, res) => {
       [name, email, hashedPassword]
     );
     
+    const newUser = result.rows[0];
+    
+    // Generate JWT tokens
+    const accessToken = generateAccessToken(newUser);
+    const refreshToken = generateRefreshToken(newUser);
+    
     return res.status(201).json({
       status: 'success',
       data: {
-        user: result.rows[0]
+        user: {
+          id: newUser.id,
+          name: newUser.name,
+          email: newUser.email,
+          role: newUser.role,
+          is_ready: newUser.is_ready
+        },
+        accessToken,
+        refreshToken
       }
     });
   } catch (error) {
@@ -85,10 +101,22 @@ router.post('/users/login', async (req, res) => {
       });
     }
     
+    // Generate JWT tokens
+    const accessToken = generateAccessToken(user);
+    const refreshToken = generateRefreshToken(user);
+    
     return res.status(200).json({
       status: 'success',
       data: {
-        user: user
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          is_ready: user.is_ready
+        },
+        accessToken,
+        refreshToken
       }
     });
   } catch (error) {
@@ -101,11 +129,78 @@ router.post('/users/login', async (req, res) => {
   }
 });
 
+// Add token refresh endpoint
+router.post('/users/refresh-token', async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+    
+    if (!refreshToken) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Refresh token is required'
+      });
+    }
+    
+    const { verifyToken } = require('../utils/jwt');
+    const decoded = verifyToken(refreshToken);
+    
+    if (!decoded) {
+      return res.status(401).json({
+        status: 'fail',
+        message: 'Invalid or expired refresh token'
+      });
+    }
+    
+    // Get user from database
+    const userResult = await db.client.query(
+      'SELECT * FROM users WHERE id = $1',
+      [decoded.id]
+    );
+    
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({
+        status: 'fail',
+        message: 'User not found'
+      });
+    }
+    
+    const user = userResult.rows[0];
+    
+    // Generate new tokens
+    const accessToken = generateAccessToken(user);
+    const newRefreshToken = generateRefreshToken(user);
+    
+    return res.status(200).json({
+      status: 'success',
+      data: {
+        accessToken,
+        refreshToken: newRefreshToken
+      }
+    });
+  } catch (error) {
+    console.error('Token refresh error:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to refresh token',
+      details: error.message
+    });
+  }
+});
+
 // Add ready status update endpoint (using name instead of ID)
-router.put('/users/:name/ready', async (req, res) => {
+// Now protected with authentication
+router.put('/users/:name/ready', authenticate, async (req, res) => {
   try {
     const { name } = req.params;
     const { isReady } = req.body;
+    
+    // Verify the authenticated user is updating their own status
+    if (req.user.name !== name) {
+      return res.status(403).json({
+        status: 'fail',
+        message: 'You can only update your own ready status'
+      });
+    }
     
     const result = await db.client.query(
       'UPDATE users SET is_ready = $1 WHERE name = $2 RETURNING *',
@@ -135,8 +230,8 @@ router.put('/users/:name/ready', async (req, res) => {
   }
 });
 
-// Add route to get users by session code
-router.get('/users/session/:sessionCode', async (req, res) => {
+// Add route to get users by session code - now protected
+router.get('/users/session/:sessionCode', authenticate, async (req, res) => {
   try {
     const { sessionCode } = req.params;
     

@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/database');
+const { authenticate } = require('../middleware/auth');
 
 /**
  * Get all availability entries for a user
  * GET /api/v1/schedules/user/:name
  */
-router.get('/schedules/user/:name', async (req, res) => {
+router.get('/schedules/user/:name', authenticate, async (req, res) => {
   try {
     const { name } = req.params;
     
@@ -50,7 +51,7 @@ router.get('/schedules/user/:name', async (req, res) => {
  * Add an availability entry for a user in a specific session
  * POST /api/v1/schedules
  */
-router.post('/schedules', async (req, res) => {
+router.post('/schedules', authenticate, async (req, res) => {
   try {
     const { session_code, user_name, day_of_week, start_time, end_time } = req.body;
     
@@ -114,7 +115,7 @@ router.post('/schedules', async (req, res) => {
  * Delete an availability entry
  * DELETE /api/v1/schedules/:id
  */
-router.delete('/schedules/:id', async (req, res) => {
+router.delete('/schedules/:id', authenticate, async (req, res) => {
   try {
     const { id } = req.params;
     

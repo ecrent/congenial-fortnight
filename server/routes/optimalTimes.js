@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/database');
+const { authenticate } = require('../middleware/auth');
 
 /**
  * Find optimal meeting times for a session
  * GET /api/v1/optimal-times/:sessionCode
  */
-router.get('/optimal-times/:sessionCode', async (req, res) => {
+router.get('/optimal-times/:sessionCode', authenticate, async (req, res) => {
   try {
     const { sessionCode } = req.params;
     const { duration = 60 } = req.query; // Duration in minutes, and optional notify flag
