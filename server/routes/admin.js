@@ -4,6 +4,13 @@ const db = require('../config/database');
 const adminAuth = require('../middleware/adminAuth');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
+const { 
+  isValidUsername, 
+  isValidEmail, 
+  isValidPassword, 
+  isValidRole,
+  isValidSessionCode 
+} = require('../utils/validation');
 
 // Middleware to protect all admin routes
 router.use(adminAuth);
@@ -15,7 +22,9 @@ router.use(adminAuth);
 router.get('/admin/users', async (req, res) => {
   try {
     const result = await db.query(
-      'SELECT id, name, email, role, is_ready, created_at FROM users ORDER BY created_at DESC'
+      'SELECT id, name, email, role, is_ready, created_at FROM users ORDER BY created_at DESC',
+      [],
+      10000 // Longer timeout for admin operations
     );
     
     res.status(200).json({
@@ -55,7 +64,7 @@ router.get('/admin/sessions', async (req, res) => {
         sessions s
       ORDER BY 
         s.created_at DESC
-    `);
+    `, [], 15000); // Longer timeout for potentially large dataset
     
     res.status(200).json({
       status: 'success',
@@ -94,7 +103,7 @@ router.get('/admin/schedules', async (req, res) => {
       ORDER BY 
         s.created_at DESC
       LIMIT 100
-    `);
+    `, [], 20000); // Higher timeout for complex query with potentially large dataset
     
     res.status(200).json({
       status: 'success',
@@ -121,6 +130,44 @@ router.put('/admin/users/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { name, email, role, password } = req.body;
+    
+    // Validate user ID
+    const userId = parseInt(id);
+    if (isNaN(userId) || userId <= 0) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Invalid user ID'
+      });
+    }
+    
+    // Validate inputs if provided
+    if (name !== undefined && !isValidUsername(name)) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Invalid username format. Use 3-30 alphanumeric characters, underscores, or hyphens.'
+      });
+    }
+    
+    if (email !== undefined && !isValidEmail(email)) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Invalid email format'
+      });
+    }
+    
+    if (role !== undefined && !isValidRole(role)) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Role must be either "admin" or "user"'
+      });
+    }
+    
+    if (password !== undefined && password !== '' && !isValidPassword(password)) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Password must be at least 6 characters long'
+      });
+    }
     
     // Start building the query
     let query = 'UPDATE users SET ';
@@ -164,7 +211,7 @@ router.put('/admin/users/:id', async (req, res) => {
     
     // Complete the query
     query += updates.join(', ') + ` WHERE id = $${paramCounter} RETURNING id, name, email, role, is_ready, created_at`;
-    values.push(id);
+    values.push(userId);
     
     const result = await db.query(query, values);
     
@@ -199,9 +246,18 @@ router.delete('/admin/users/:id', async (req, res) => {
   try {
     const { id } = req.params;
     
+    // Validate user ID
+    const userId = parseInt(id);
+    if (isNaN(userId) || userId <= 0) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Invalid user ID'
+      });
+    }
+    
     const result = await db.query(
       'DELETE FROM users WHERE id = $1 RETURNING id',
-      [id]
+      [userId]
     );
     
     if (result.rows.length === 0) {
@@ -229,6 +285,14 @@ router.delete('/admin/users/:id', async (req, res) => {
 router.delete('/admin/sessions/:code', async (req, res) => {
   try {
     const { code } = req.params;
+    
+    // Validate session code
+    if (!isValidSessionCode(code)) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Invalid session code format'
+      });
+    }
     
     const result = await db.query(
       'DELETE FROM sessions WHERE session_code = $1 RETURNING id',
@@ -261,6 +325,14 @@ router.put('/admin/sessions/:code/extend', async (req, res) => {
   try {
     const { code } = req.params;
     
+    // Validate session code
+    if (!isValidSessionCode(code)) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Invalid session code format'
+      });
+    }
+    
     const result = await db.query(
       'UPDATE sessions SET expires_at = NOW() + INTERVAL \'24 hours\' WHERE session_code = $1 RETURNING *',
       [code]
@@ -288,6 +360,5 @@ router.put('/admin/sessions/:code/extend', async (req, res) => {
     });
   }
 });
-
 
 module.exports = router;

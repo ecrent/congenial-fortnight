@@ -29,6 +29,14 @@ const adminAuth = async (req, res, next) => {
       });
     }
 
+    // Validate decoded token content
+    if (!decoded.id || !decoded.name) {
+      return res.status(401).json({
+        status: 'fail',
+        message: 'Authentication failed: Malformed token'
+      });
+    }
+
     // Check if user exists and is an admin
     const result = await db.query(
       'SELECT role FROM users WHERE id = $1',

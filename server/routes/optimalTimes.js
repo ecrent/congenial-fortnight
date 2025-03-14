@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/database');
 const { authenticate } = require('../middleware/auth');
+const { isValidSessionCode } = require('../utils/validation');
 
 /**
  * Find optimal meeting times for a session
@@ -10,7 +11,24 @@ const { authenticate } = require('../middleware/auth');
 router.get('/optimal-times/:sessionCode', authenticate, async (req, res) => {
   try {
     const { sessionCode } = req.params;
-    const { duration = 60 } = req.query; // Duration in minutes, and optional notify flag
+    const { duration = 60 } = req.query; // Duration in minutes
+    
+    // Validate session code
+    if (!isValidSessionCode(sessionCode)) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Invalid session code format'
+      });
+    }
+    
+    // Validate duration
+    const meetingDuration = parseInt(duration);
+    if (isNaN(meetingDuration) || meetingDuration <= 0) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Duration must be a positive number'
+      });
+    }
     
     // Check if session exists
     const sessionCheck = await db.query(
@@ -57,7 +75,7 @@ router.get('/optimal-times/:sessionCode', authenticate, async (req, res) => {
       ORDER BY
         day_of_week,
         duration DESC;
-    `, [sessionCode, duration]);
+    `, [sessionCode, meetingDuration], 30000); // Longer timeout for this complex query
     
     const optimalTimes = result.rows;
 

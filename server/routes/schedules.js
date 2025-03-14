@@ -2,6 +2,13 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/database');
 const { authenticate } = require('../middleware/auth');
+const { 
+  isValidTimeFormat, 
+  isValidDayOfWeek, 
+  isValidTimeRange, 
+  isValidSessionCode, 
+  isValidUsername 
+} = require('../utils/validation');
 
 /**
  * Get all availability entries for a user
@@ -11,7 +18,15 @@ router.get('/schedules/user/:name', authenticate, async (req, res) => {
   try {
     const { name } = req.params;
     
-    // Check if user exists - Using db.client.query consistently
+    // Validate username
+    if (!isValidUsername(name)) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Invalid username format'
+      });
+    }
+    
+    // Check if user exists
     const userCheck = await db.client.query(
       'SELECT name FROM users WHERE name = $1',
       [name]
@@ -24,7 +39,7 @@ router.get('/schedules/user/:name', authenticate, async (req, res) => {
       });
     }
     
-    // Get all availability entries for this user - Using db.client.query consistently
+    // Get all availability entries for this user
     const result = await db.client.query(
       'SELECT * FROM schedules WHERE user_name = $1 ORDER BY day_of_week, start_time',
       [name]
@@ -54,6 +69,61 @@ router.get('/schedules/user/:name', authenticate, async (req, res) => {
 router.post('/schedules', authenticate, async (req, res) => {
   try {
     const { session_code, user_name, day_of_week, start_time, end_time } = req.body;
+    
+    // Validate inputs
+    if (!session_code || !user_name || day_of_week === undefined || !start_time || !end_time) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'All fields are required: session_code, user_name, day_of_week, start_time, end_time'
+      });
+    }
+    
+    // Validate session code
+    if (!isValidSessionCode(session_code)) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Invalid session code format'
+      });
+    }
+    
+    // Validate username
+    if (!isValidUsername(user_name)) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Invalid username format'
+      });
+    }
+    
+    // Validate day of week
+    if (!isValidDayOfWeek(parseInt(day_of_week))) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Day of week must be a number between 0 and 6'
+      });
+    }
+    
+    // Validate time formats
+    if (!isValidTimeFormat(start_time)) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Invalid start time format. Use HH:MM format.'
+      });
+    }
+    
+    if (!isValidTimeFormat(end_time)) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Invalid end time format. Use HH:MM format.'
+      });
+    }
+    
+    // Validate time range
+    if (!isValidTimeRange(start_time, end_time)) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'End time must be after start time'
+      });
+    }
     
     // Check if session exists
     const sessionCheck = await db.client.query(
@@ -119,22 +189,44 @@ router.delete('/schedules/:id', authenticate, async (req, res) => {
   try {
     const { id } = req.params;
     
-    const result = await db.client.query(
-      'DELETE FROM schedules WHERE id = $1 RETURNING id',
-      [id]
+    // Validate ID
+    const scheduleId = parseInt(id);
+    if (isNaN(scheduleId) || scheduleId <= 0) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Invalid schedule ID'
+      });
+    }
+    
+    // Check if the schedule exists and belongs to the authenticated user
+    const scheduleCheck = await db.client.query(
+      'SELECT user_name FROM schedules WHERE id = $1',
+      [scheduleId]
     );
     
-    if (result.rows.length === 0) {
+    if (scheduleCheck.rows.length === 0) {
       return res.status(404).json({
         status: 'fail',
         message: `Availability entry with ID ${id} not found`
       });
     }
     
-    res.status(204).json({
-      status: 'success',
-      data: null
-    });
+    // Verify the user is deleting their own schedule
+    if (scheduleCheck.rows[0].user_name !== req.user.name) {
+      return res.status(403).json({
+        status: 'fail',
+        message: 'You are not authorized to delete this availability entry'
+      });
+    }
+    
+    // Delete the schedule entry
+    const result = await db.client.query(
+      'DELETE FROM schedules WHERE id = $1 RETURNING id',
+      [scheduleId]
+    );
+    
+    // Send a 204 No Content response
+    res.status(204).send();
   } catch (error) {
     console.error('Database query error:', error);
     res.status(500).json({
@@ -144,7 +236,5 @@ router.delete('/schedules/:id', authenticate, async (req, res) => {
     });
   }
 });
-
-// Optimal times endpoint moved to its own file: optimalTimes.js
 
 module.exports = router;

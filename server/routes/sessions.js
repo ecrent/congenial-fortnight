@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require('../config/database');
 const crypto = require('crypto');
 const { authenticate } = require('../middleware/auth');
+const { isValidSessionCode, isValidUsername } = require('../utils/validation');
 
 // Helper function to generate a random session code (8 characters)
 function generateSessionCode() {
@@ -53,6 +54,14 @@ router.get('/sessions/:code', authenticate, async (req, res) => {
   try {
     const { code } = req.params;
     
+    // Validate session code
+    if (!isValidSessionCode(code)) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Invalid session code format'
+      });
+    }
+    
     // Get the session and check if it exists and hasn't expired
     const result = await db.query(
       'SELECT * FROM sessions WHERE session_code = $1 AND expires_at > NOW()',
@@ -86,6 +95,14 @@ router.get('/sessions/:code', authenticate, async (req, res) => {
 router.get('/sessions/user/:name', authenticate, async (req, res) => {
   try {
     const { name } = req.params;
+    
+    // Validate username
+    if (!isValidUsername(name)) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Invalid username format'
+      });
+    }
     
     // Get all active sessions for this user
     const result = await db.query(`
@@ -134,6 +151,21 @@ router.get('/sessions/user/:name', authenticate, async (req, res) => {
 router.delete('/sessions/:code/users/:name', authenticate, async (req, res) => {
   try {
     const { code, name } = req.params;
+    
+    // Validate session code and username
+    if (!isValidSessionCode(code)) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Invalid session code format'
+      });
+    }
+    
+    if (!isValidUsername(name)) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Invalid username format'
+      });
+    }
     
     // Delete all schedules for this user in the session
     const result = await db.client.query(

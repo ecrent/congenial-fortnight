@@ -5,12 +5,49 @@ const bcrypt = require('bcrypt');
 const saltRounds = 10;
 const { generateAccessToken, generateRefreshToken } = require('../utils/jwt');
 const { authenticate } = require('../middleware/auth');
+const { isValidEmail, isValidPassword, isValidUsername } = require('../utils/validation');
 
 // Register a new user
 router.post('/users/register', async (req, res) => {
+  console.log('Registration attempt:', { 
+    name: req.body.name,
+    email: req.body.email,
+    passwordProvided: !!req.body.password 
+  });
+  
   try {
     const { name, email, password } = req.body;
     
+    // Input validation
+    if (!name || !email || !password) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'All fields are required'
+      });
+    }
+    
+    if (!isValidUsername(name)) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Invalid username format. Use 3-30 alphanumeric characters, underscores, or hyphens.'
+      });
+    }
+    
+    if (!isValidEmail(email)) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Invalid email format'
+      });
+    }
+    
+    if (!isValidPassword(password)) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Password must be at least 6 characters long'
+      });
+    }
+    
+    // Check if user exists in database
     const nameCheck = await db.query(
       'SELECT name FROM users WHERE name = $1',
       [name]
@@ -35,10 +72,11 @@ router.post('/users/register', async (req, res) => {
       });
     }
     
-    // Hash the password before storing it.
+    // Hash the password before storing it
     const hashedPassword = await bcrypt.hash(password, saltRounds);
     
-    const result = await db.client.query(
+    // Use db.query for consistency with other query calls
+    const result = await db.query(
       'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *',
       [name, email, hashedPassword]
     );
@@ -64,7 +102,13 @@ router.post('/users/register', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Database query error:', error);
+    console.error('Registration error details:', {
+      message: error.message,
+      stack: error.stack,
+      code: error.code,
+      detail: error.detail
+    });
+    
     res.status(500).json({
       status: 'error',
       message: 'Failed to create user',
@@ -73,13 +117,21 @@ router.post('/users/register', async (req, res) => {
   }
 });
 
-// Add login endpoint (modified to use bcrypt for password verification)
+// Login endpoint with validation
 router.post('/users/login', async (req, res) => {
   try {
     const { name, password } = req.body;
     
-    // Fetch user by name
-    const userResult = await db.client.query(
+    // Input validation
+    if (!name || !password) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Username and password are required'
+      });
+    }
+    
+    // Fetch user by name - use db.query for consistency
+    const userResult = await db.query(
       'SELECT * FROM users WHERE name = $1',
       [name]
     );
@@ -129,7 +181,7 @@ router.post('/users/login', async (req, res) => {
   }
 });
 
-// Add token refresh endpoint
+// Token refresh endpoint with validation
 router.post('/users/refresh-token', async (req, res) => {
   try {
     const { refreshToken } = req.body;
@@ -151,8 +203,8 @@ router.post('/users/refresh-token', async (req, res) => {
       });
     }
     
-    // Get user from database
-    const userResult = await db.client.query(
+    // Get user from database - use db.query for consistency
+    const userResult = await db.query(
       'SELECT * FROM users WHERE id = $1',
       [decoded.id]
     );
@@ -187,12 +239,19 @@ router.post('/users/refresh-token', async (req, res) => {
   }
 });
 
-// Add ready status update endpoint (using name instead of ID)
-// Now protected with authentication
+// Ready status update endpoint with validation
 router.put('/users/:name/ready', authenticate, async (req, res) => {
   try {
     const { name } = req.params;
     const { isReady } = req.body;
+    
+    // Input validation
+    if (typeof isReady !== 'boolean') {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'isReady must be a boolean value'
+      });
+    }
     
     // Verify the authenticated user is updating their own status
     if (req.user.name !== name) {
@@ -202,7 +261,7 @@ router.put('/users/:name/ready', authenticate, async (req, res) => {
       });
     }
     
-    const result = await db.client.query(
+    const result = await db.query(
       'UPDATE users SET is_ready = $1 WHERE name = $2 RETURNING *',
       [isReady, name]
     );
@@ -230,10 +289,18 @@ router.put('/users/:name/ready', authenticate, async (req, res) => {
   }
 });
 
-// Add route to get users by session code - now protected
+// Get users by session code with validation
 router.get('/users/session/:sessionCode', authenticate, async (req, res) => {
   try {
     const { sessionCode } = req.params;
+    
+    // Input validation
+    if (!sessionCode || sessionCode.length !== 8) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Valid session code is required'
+      });
+    }
     
     // Check if session exists
     const sessionCheck = await db.query(

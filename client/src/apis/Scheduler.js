@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+// Check that this URL is correct and accessible from your client
 const Scheduler = axios.create({
   baseURL: 'https://bug-free-space-waffle-r9v99g7q49jc5wj7-3000.app.github.dev/api/v1',
 });
