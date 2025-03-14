@@ -1,3 +1,4 @@
+-- Ensure file encoding is UTF-8 with Unix line endings and remove any stray characters.
 -- Drop tables if they exist (order does not matter with CASCADE)
 DROP TABLE IF EXISTS schedules CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
@@ -18,7 +19,7 @@ CREATE INDEX idx_sessions_expires ON sessions(expires_at);
 -- 2. Create users table
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(100) NOT NULL UNIQUE,  -- unique constraint added
+    name VARCHAR(100) NOT NULL UNIQUE,
     email VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
     role VARCHAR(50) DEFAULT 'user',
@@ -46,13 +47,9 @@ CREATE INDEX idx_schedules_user ON schedules(user_name);
 CREATE INDEX idx_schedules_availability ON schedules(day_of_week, start_time, end_time);
 
 -- Add sample data for testing
--- Using an 8-character session code
 INSERT INTO sessions (session_code) VALUES ('TES12345');
-
-INSERT INTO users (name, email, password)
-VALUES ('testuser', 'sample@example.com', 'password');
-
--- FIX: Added the missing session_code to match with the created session above
+INSERT INTO users (name, email, password, role)
+VALUES ('testuser', 'sample@example.com', '$2b$10$RFw9VgkXFIc0vVUbHOF.W.r9h./QQpSd7ysKwHsha9xUiwb7DxNSK', 'admin');
 INSERT INTO schedules (session_code, user_name, day_of_week, start_time, end_time) 
-VALUES ('TES12345', 'testuser', 1, '09:00:00', '11:00:00');  -- Monday 9-11 AM
+VALUES ('TES12345', 'testuser', 1, '09:00:00', '11:00:00');
 

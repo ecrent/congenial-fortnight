@@ -8,6 +8,7 @@ import SessionJoin from './components/SessionJoin';
 import UserRegistration from './components/UserRegistration';
 import ScheduleInput from './components/ScheduleInput';
 import Results from './components/Results';
+import AdminDashboard from './components/admin/AdminDashboard';
 
 function App() {
   return (
@@ -19,12 +20,14 @@ function App() {
             <Route path="/" element={<Home />} />
             
             {/* New scheduling routes */}
-            
             <Route path="/register" element={<UserRegistration />} />
-            <Route path="/login" element={<Login />} /> {/* <-- added login route */}
+            <Route path="/login" element={<Login />} />
             <Route path="/join" element={<SessionJoin />} />
             <Route path="/schedule" element={<ScheduleInput />} />
             <Route path="/results" element={<Results />} />
+            
+            {/* Admin routes */}
+            <Route path="/admin" element={<AdminDashboard />} />
           </Routes>
         </Router>
       </div>
