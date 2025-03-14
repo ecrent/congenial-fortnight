@@ -13,6 +13,9 @@ const scheduleRoutes = require('./routes/schedules');
 const optimalTimesRoutes = require('./routes/optimalTimes'); 
 const adminRoutes = require('./routes/admin'); // Add new admin routes
 
+// Import rate limiting middleware
+const { apiLimiter, authLimiter, adminLimiter } = require('./middleware/rateLimiter');
+
 // List of allowed origins
 const allowedOrigins = [
   'https://bug-free-space-waffle-r9v99g7q49jc5wj7-3001.app.github.dev',
@@ -43,6 +46,12 @@ app.get('/', (req, res) => {
   res.send('Hello World!');
   console.log('somebody hit the home route');
 });
+
+// Apply rate limiters to specific route groups
+app.use('/api/v1/users/login', authLimiter); // Strict limit for login
+app.use('/api/v1/users/register', authLimiter); // Strict limit for registration
+app.use('/api/v1/admin', adminLimiter); // Medium limit for admin routes
+app.use('/api/v1', apiLimiter); // General limit for all other API routes
 
 // Mount routes
 app.use('/api/v1', sessionRoutes);
