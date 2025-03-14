@@ -9,6 +9,7 @@ export const SessionProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [initialLoading, setInitialLoading] = useState(true); // Add initialLoading state
 
   // Check local storage for existing user and session on component mount
   useEffect(() => {
@@ -23,6 +24,7 @@ export const SessionProvider = ({ children }) => {
         localStorage.removeItem('info');
       }
     }
+    setInitialLoading(false); // Mark initial loading as complete
   }, []);
 
   // Register a new user (no session needed initially)
@@ -260,7 +262,8 @@ export const SessionProvider = ({ children }) => {
     <SessionContext.Provider value={{ 
       session, 
       user, 
-      loading, 
+      loading,
+      initialLoading, // Add initialLoading to the context value
       error,
       registerUser,
       loginUser,

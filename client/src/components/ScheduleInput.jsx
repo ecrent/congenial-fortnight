@@ -5,10 +5,10 @@ import Scheduler from '../apis/Scheduler';
 import Header from '../components/Header';
 
 const ScheduleInput = () => {
-  const { session, user, setUserReady, loading: sessionLoading } = useContext(SessionContext);
+  const { session, user, setUserReady, loading: sessionLoading, initialLoading } = useContext(SessionContext);
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [toggling, setToggling] = useState(false); // New state for toggle operation
+  const [toggling, setToggling] = useState(false);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
     day_of_week: 1, // Monday
@@ -19,14 +19,14 @@ const ScheduleInput = () => {
   
   const navigate = useNavigate();
   
-  // When the component mounts, these useEffect hooks run:
-
-  // 1. First, this useEffect checks if user and session exist in context
+  // 1. First useEffect checks if user and session exist in context
   useEffect(() => {
+    if (initialLoading) return; // Don't redirect while still loading from localStorage
+    
     if (!session || !user) {
       navigate('/join'); // Redirects if requirements not met
     }
-  }, [session, user, navigate]);
+  }, [session, user, navigate, initialLoading]);
   
   // 2. This useEffect loads the user's existing schedules from the backend
   useEffect(() => {
@@ -290,7 +290,7 @@ const ScheduleInput = () => {
           <button 
             onClick={handleReadyClick} 
             className={`btn ${isCurrentUserReady ? 'btn-warning' : 'btn-success'}`}
-            disabled={ schedules.length === 0 || toggling}
+            disabled={schedules.length === 0 || toggling}
           >
             { toggling 
                 ? "Processing..." 

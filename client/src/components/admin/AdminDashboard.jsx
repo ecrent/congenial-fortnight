@@ -7,18 +7,24 @@ import UserManagement from './UserManagement';
 import SessionManagement from './SessionManagement';
 
 const AdminDashboard = () => {
-  const { user } = useContext(SessionContext);
+  const { user, initialLoading } = useContext(SessionContext);
   const [activeTab, setActiveTab] = useState('users');
   const navigate = useNavigate();
   
   // Check if user is admin
   useEffect(() => {
+    if (initialLoading) return; // Wait for session loading to complete
+    
     if (!user) {
       navigate('/login');
     } else if (user.role !== 'admin') {
       navigate('/');
     }
-  }, [user, navigate]);
+  }, [user, navigate, initialLoading]);
+  
+  if (initialLoading) {
+    return <div className="text-center my-5">Loading...</div>; // Show loading state while checking localStorage
+  }
   
   if (!user || user.role !== 'admin') {
     return null; // Don't render anything while redirecting

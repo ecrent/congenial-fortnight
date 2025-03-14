@@ -5,7 +5,7 @@ import Scheduler from '../apis/Scheduler';
 import Header from '../components/Header';
 
 const Results = () => {
-  const { session, user, setUserReady } = useContext(SessionContext);
+  const { session, user, setUserReady, initialLoading } = useContext(SessionContext);
   const [optimalTimes, setOptimalTimes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -15,10 +15,12 @@ const Results = () => {
   
   // Redirect if no session or user
   useEffect(() => {
+    if (initialLoading) return; // Wait for session loading to complete
+    
     if (!session || !user) {
       navigate('/join');
     }
-  }, [session, user, navigate]);
+  }, [session, user, navigate, initialLoading]);
   
   // Fetch users to check ready status
   useEffect(() => {

@@ -14,16 +14,19 @@ const SessionJoin = () => {
     getUserSessions,
     loading, 
     error, 
-    user 
+    user,
+    initialLoading
   } = useContext(SessionContext);
   const navigate = useNavigate();
 
   // Restrict access: Only a registered user may access /join
   useEffect(() => {
+    if (initialLoading) return; // Wait for session loading to complete
+    
     if (!user) {
       navigate('/');
     }
-  }, [user, navigate]);
+  }, [user, navigate, initialLoading]);
 
   // Fetch user's active sessions
   useEffect(() => {
