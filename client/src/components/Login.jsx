@@ -6,12 +6,42 @@ import Header from './Header';
 const Login = () => {
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
+  const [validationErrors, setValidationErrors] = useState({
+    password: ''
+  });
   const { loginUser, loading, error } = useContext(SessionContext);
   const navigate = useNavigate();
 
+  const handlePasswordChange = (e) => {
+    const value = e.target.value;
+    setPassword(value);
+    
+    // Basic validation for password
+    if (value.length > 0 && value.length < 6) {
+      setValidationErrors({
+        ...validationErrors,
+        password: 'Password must be at least 6 characters long'
+      });
+    } else {
+      setValidationErrors({
+        ...validationErrors,
+        password: ''
+      });
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name.trim() || !password.trim()) return;
+    
+    // Basic validation before submission
+    if (password.length < 6) {
+      setValidationErrors({
+        ...validationErrors,
+        password: 'Password must be at least 6 characters long'
+      });
+      return;
+    }
+    
     const user = await loginUser(name, password);
     if (user) {
       // Check if user is an admin and redirect accordingly
@@ -22,6 +52,9 @@ const Login = () => {
       }
     }
   };
+
+  // Check if form is valid
+  const isFormValid = name.trim() !== '' && password.length >= 6;
 
   return (
     <div>
@@ -46,19 +79,22 @@ const Login = () => {
             <label htmlFor="loginPassword" className="form-label">Password</label>
             <input
               type="password"
-              className="form-control"
+              className={`form-control ${validationErrors.password ? 'is-invalid' : ''}`}
               id="loginPassword"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
+              onChange={handlePasswordChange}
+              placeholder="Enter your password (min. 6 characters)"
               required
             />
+            {validationErrors.password && (
+              <div className="invalid-feedback">{validationErrors.password}</div>
+            )}
           </div>
           <div className="d-grid">
             <button 
               type="submit" 
               className="btn btn-primary" 
-              disabled={loading || !name.trim() || !password.trim()}
+              disabled={loading || !isFormValid}
             >
               {loading ? 'Logging in...' : 'Login'}
             </button>

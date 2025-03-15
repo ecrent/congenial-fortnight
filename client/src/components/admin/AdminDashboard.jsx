@@ -1,7 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SessionContext } from '../../context/SessionContext';
-import Scheduler from '../../apis/Scheduler';
 import Header from '../Header';
 import UserManagement from './UserManagement';
 import SessionManagement from './SessionManagement';

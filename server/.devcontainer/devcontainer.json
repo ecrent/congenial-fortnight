@@ -23,7 +23,7 @@
     },
     "5432": {
       "label": "PostgreSQL",
-      "onAutoForward": "openBrowser",
+      "onAutoForward": "notify",
       "visibility": "public",
       "showInExplorer": true
     },
