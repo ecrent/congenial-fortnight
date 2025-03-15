@@ -34,16 +34,7 @@ const authLimiter = rateLimit({
   },
 });
 
-// Admin endpoints rate limiter
-// Allows 30 requests per minute per IP
-const adminLimiter = rateLimit({
-  ...baseConfig,
-  windowMs: 60 * 1000, // 1 minute
-  max: 5, // Limit each IP to 30 requests per windowMs
-});
-
 module.exports = {
   apiLimiter,
-  authLimiter,
-  adminLimiter
+  authLimiter
 };

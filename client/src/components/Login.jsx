@@ -44,12 +44,8 @@ const Login = () => {
     
     const user = await loginUser(name, password);
     if (user) {
-      // Check if user is an admin and redirect accordingly
-      if (user.role === 'admin') {
-        navigate('/admin'); // Redirect admin users to the admin dashboard
-      } else {
-        navigate('/join'); // Regular users go to join session page
-      }
+      // Direct all users to join page, removing admin check
+      navigate('/join');
     }
   };
 

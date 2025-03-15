@@ -11,10 +11,11 @@ const sessionRoutes = require('./routes/sessions');
 const userRoutes = require('./routes/users');
 const scheduleRoutes = require('./routes/schedules');
 const optimalTimesRoutes = require('./routes/optimalTimes'); 
-const adminRoutes = require('./routes/admin'); // Add new admin routes
+// Removed admin routes import
 
 // Import rate limiting middleware
-const { apiLimiter, authLimiter, adminLimiter } = require('./middleware/rateLimiter');
+const { apiLimiter, authLimiter } = require('./middleware/rateLimiter');
+// Removed adminLimiter
 
 // List of allowed origins
 const allowedOrigins = [
@@ -50,7 +51,7 @@ app.get('/', (req, res) => {
 // Apply rate limiters to specific route groups
 app.use('/api/v1/users/login', authLimiter); // Strict limit for login
 app.use('/api/v1/users/register', authLimiter); // Strict limit for registration
-app.use('/api/v1/admin', adminLimiter); // Medium limit for admin routes
+// Removed admin route limiter
 app.use('/api/v1', apiLimiter); // General limit for all other API routes
 
 // Mount routes
@@ -58,7 +59,7 @@ app.use('/api/v1', sessionRoutes);
 app.use('/api/v1', userRoutes);
 app.use('/api/v1', scheduleRoutes);
 app.use('/api/v1', optimalTimesRoutes); 
-app.use('/api/v1', adminRoutes); // Mount admin routes
+// Removed admin routes
 
 // 404 handler for undefined routes
 app.use((req, res) => {

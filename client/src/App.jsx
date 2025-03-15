@@ -8,7 +8,7 @@ import SessionJoin from './components/SessionJoin';
 import UserRegistration from './components/UserRegistration';
 import ScheduleInput from './components/ScheduleInput';
 import Results from './components/Results';
-import AdminDashboard from './components/admin/AdminDashboard';
+// Removed admin import
 
 function App() {
   return (
@@ -26,8 +26,7 @@ function App() {
             <Route path="/schedule" element={<ScheduleInput />} />
             <Route path="/results" element={<Results />} />
             
-            {/* Admin routes */}
-            <Route path="/admin" element={<AdminDashboard />} />
+            {/* Removed admin route */}
           </Routes>
         </Router>
       </div>
