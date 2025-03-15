@@ -1,0 +1,15 @@
+{
+  "forwardPorts": [3000, 3001],
+  "portsAttributes": {
+    "3000": {
+      "label": "API Server",
+      "onAutoForward": "notify",
+      "visibility": "public"
+    },
+    "3001": {
+      "label": "Client App",
+      "onAutoForward": "notify",
+      "visibility": "public"
+    }
+  }
+}
