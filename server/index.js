@@ -11,11 +11,10 @@ const sessionRoutes = require('./routes/sessions');
 const userRoutes = require('./routes/users');
 const scheduleRoutes = require('./routes/schedules');
 const optimalTimesRoutes = require('./routes/optimalTimes'); 
-// Removed admin routes import
+const adminRoutes = require('./routes/admin'); // Add admin routes
 
 // Import rate limiting middleware
 const { apiLimiter, authLimiter } = require('./middleware/rateLimiter');
-// Removed adminLimiter
 
 // List of allowed origins
 const allowedOrigins = [
@@ -23,17 +22,23 @@ const allowedOrigins = [
   'https://bug-free-space-waffle-r9v99g7q49jc5wj7-3000.app.github.dev'
 ];
 
-// CORS middleware
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  }
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  next();
-});
+// Use the cors middleware properly instead of manual implementation
+app.use(cors({
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  optionsSuccessStatus: 204
+}));
 
 app.use(express.json());
 
@@ -43,23 +48,22 @@ app.use((req, res, next) => {
   next();
 });
 
+// Apply rate limiters to specific route groups
+app.use('/api/v1/users/login', authLimiter); // Strict limit for login
+app.use('/api/v1/users/register', authLimiter); // Strict limit for registration
+app.use('/api/v1', apiLimiter); // General limit for all other API routes
+
 app.get('/', (req, res) => {
   res.send('Hello World!');
   console.log('somebody hit the home route');
 });
-
-// Apply rate limiters to specific route groups
-app.use('/api/v1/users/login', authLimiter); // Strict limit for login
-app.use('/api/v1/users/register', authLimiter); // Strict limit for registration
-// Removed admin route limiter
-app.use('/api/v1', apiLimiter); // General limit for all other API routes
 
 // Mount routes
 app.use('/api/v1', sessionRoutes);
 app.use('/api/v1', userRoutes);
 app.use('/api/v1', scheduleRoutes);
 app.use('/api/v1', optimalTimesRoutes); 
-// Removed admin routes
+app.use('/api/v1/admin', adminRoutes); // Mount admin routes
 
 // 404 handler for undefined routes
 app.use((req, res) => {

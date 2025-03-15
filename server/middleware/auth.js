@@ -1,15 +1,20 @@
 const { verifyToken } = require('../utils/jwt');
+const db = require('../config/database'); // Fix the import path
 
 /**
  * Middleware to validate JWT token and add user to request
  */
-const authenticate = (req, res, next) => {
+const authenticate = async (req, res, next) => {
   try {
     // Get token from authorization header
     const authHeader = req.headers.authorization;
     const token = authHeader && authHeader.startsWith('Bearer ') 
       ? authHeader.substring(7) 
       : null;
+
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Auth middleware - token extracted:', token ? token.substring(0, 10) + '...' : 'No token');
+    }
 
     if (!token) {
       return res.status(401).json({
@@ -20,6 +25,14 @@ const authenticate = (req, res, next) => {
 
     // Verify token
     const decoded = verifyToken(token);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Auth middleware - decoded token:', decoded ? {
+        id: decoded.id,
+        name: decoded.name,
+        role: decoded.role
+      } : 'Invalid token');
+    }
+
     if (!decoded) {
       return res.status(401).json({
         status: 'fail',
@@ -32,6 +45,15 @@ const authenticate = (req, res, next) => {
       return res.status(401).json({
         status: 'fail',
         message: 'Authentication failed: Malformed token'
+      });
+    }
+
+    // Check if user still exists in the database
+    const userExists = await db.query('SELECT id FROM users WHERE id = $1', [decoded.id]);
+    if (userExists.rows.length === 0) {
+      return res.status(401).json({
+        status: 'fail',
+        message: 'User no longer exists'
       });
     }
 

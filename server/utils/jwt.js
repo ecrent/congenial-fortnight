@@ -15,8 +15,8 @@ const generateAccessToken = (user) => {
   return jwt.sign(
     { 
       id: user.id, 
-      name: user.name
-      // Removed role from token
+      name: user.name,
+      role: user.role // Include role for authorization
     }, 
     JWT_SECRET, 
     { expiresIn: ACCESS_TOKEN_EXPIRY }

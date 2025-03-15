@@ -87,7 +87,13 @@ export const SessionProvider = ({ children }) => {
       setUser(newUser);
       return newUser;
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to register user');
+      if (!navigator.onLine) {
+        setError("You appear to be offline. Please check your internet connection.");
+      } else if (!err.response) {
+        setError("Cannot reach the server. Please try again later.");
+      } else {
+        setError(err.response?.data?.message || 'Failed to register user');
+      }
       console.error('Error registering user:', err);
       return null;
     } finally {
@@ -111,7 +117,13 @@ export const SessionProvider = ({ children }) => {
       setUser(loggedUser);
       return loggedUser;
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to log in');
+      if (!navigator.onLine) {
+        setError("You appear to be offline. Please check your internet connection.");
+      } else if (!err.response) {
+        setError("Cannot reach the server. Please try again later.");
+      } else {
+        setError(err.response?.data?.message || 'Failed to log in');
+      }
       console.error('Error logging in:', err);
       return null;
     } finally {
@@ -138,7 +150,13 @@ export const SessionProvider = ({ children }) => {
       
       return newSession;
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create session');
+      if (!navigator.onLine) {
+        setError("You appear to be offline. Please check your internet connection.");
+      } else if (!err.response) {
+        setError("Cannot reach the server. Please try again later.");
+      } else {
+        setError(err.response?.data?.message || 'Failed to create session');
+      }
       console.error('Error creating session:', err);
       return null;
     } finally {
@@ -165,7 +183,13 @@ export const SessionProvider = ({ children }) => {
       
       return joinedSession;
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid session code or session expired');
+      if (!navigator.onLine) {
+        setError("You appear to be offline. Please check your internet connection.");
+      } else if (!err.response) {
+        setError("Cannot reach the server. Please try again later.");
+      } else {
+        setError(err.response?.data?.message || 'Invalid session code or session expired');
+      }
       console.error('Error joining session:', err);
       return null;
     } finally {
@@ -193,7 +217,13 @@ export const SessionProvider = ({ children }) => {
       
       return response.data.data.schedule;
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to add availability');
+      if (!navigator.onLine) {
+        setError("You appear to be offline. Please check your internet connection.");
+      } else if (!err.response) {
+        setError("Cannot reach the server. Please try again later.");
+      } else {
+        setError(err.response?.data?.message || 'Failed to add availability');
+      }
       console.error('Error adding schedule:', err);
       return null;
     } finally {
@@ -216,6 +246,13 @@ export const SessionProvider = ({ children }) => {
       
       return true;
     } catch (err) {
+      if (!navigator.onLine) {
+        setError("You appear to be offline. Please check your internet connection.");
+      } else if (!err.response) {
+        setError("Cannot reach the server. Please try again later.");
+      } else {
+        setError(err.response?.data?.message || 'An error occurred');
+      }
       console.error('Error updating ready status:', err);
       return false;
     }
@@ -232,8 +269,14 @@ export const SessionProvider = ({ children }) => {
       const response = await Scheduler.get(`/schedules/user/${user.name}`);
       return response.data.data.schedules || [];
     } catch (err) {
+      if (!navigator.onLine) {
+        setError("You appear to be offline. Please check your internet connection.");
+      } else if (!err.response) {
+        setError("Cannot reach the server. Please try again later.");
+      } else {
+        setError('Failed to fetch your schedules');
+      }
       console.error('Error fetching user schedules:', err);
-      setError('Failed to fetch your schedules');
       return [];
     }
   };
@@ -249,6 +292,13 @@ export const SessionProvider = ({ children }) => {
       const response = await Scheduler.get(`/sessions/user/${user.name}`);
       return response.data.data.sessions || [];
     } catch (err) {
+      if (!navigator.onLine) {
+        setError("You appear to be offline. Please check your internet connection.");
+      } else if (!err.response) {
+        setError("Cannot reach the server. Please try again later.");
+      } else {
+        setError(err.response?.data?.message || 'An error occurred');
+      }
       console.error('Error fetching user sessions:', err);
       return [];
     }
@@ -272,6 +322,13 @@ export const SessionProvider = ({ children }) => {
       
       return true;
     } catch (err) {
+      if (!navigator.onLine) {
+        setError("You appear to be offline. Please check your internet connection.");
+      } else if (!err.response) {
+        setError("Cannot reach the server. Please try again later.");
+      } else {
+        setError(err.response?.data?.message || 'An error occurred');
+      }
       console.error('Error leaving session:', err);
       return false;
     }
@@ -285,6 +342,220 @@ export const SessionProvider = ({ children }) => {
     sessionStorage.removeItem('sessionData');
     setSession(null);
     setUser(null);
+  };
+
+  // Admin-specific methods
+  const getUsers = async () => {
+    console.log('getUsers called, user:', user ? {
+      id: user.id,
+      name: user.name,
+      role: user.role
+    } : 'No user');
+    
+    if (!user || user.role !== 'admin') {
+      console.log('Not admin or not logged in');
+      setError('Admin privileges required');
+      return null;
+    }
+
+    try {
+      console.log('Making request to /admin/users');
+      const response = await Scheduler.get('/admin/users');
+      console.log('Response from /admin/users:', response.data);
+      return response.data.data.users;
+    } catch (err) {
+      if (!navigator.onLine) {
+        setError("You appear to be offline. Please check your internet connection.");
+      } else if (!err.response) {
+        setError("Cannot reach the server. Please try again later.");
+      } else {
+        setError(err.response?.data?.message || 'Failed to fetch users');
+      }
+      console.error('Error fetching users:', err);
+      console.log('Error details:', err.response?.data);
+      return null;
+    }
+  };
+
+  const getUser = async (userId) => {
+    if (!user || user.role !== 'admin') {
+      setError('Admin privileges required');
+      return null;
+    }
+
+    try {
+      const response = await Scheduler.get(`/admin/users/${userId}`);
+      return response.data.data.user;
+    } catch (err) {
+      if (!navigator.onLine) {
+        setError("You appear to be offline. Please check your internet connection.");
+      } else if (!err.response) {
+        setError("Cannot reach the server. Please try again later.");
+      } else {
+        setError(err.response?.data?.message || 'Failed to fetch user');
+      }
+      console.error('Error fetching user:', err);
+      return null;
+    }
+  };
+
+  const updateUser = async (userId, userData) => {
+    if (!user || user.role !== 'admin') {
+      setError('Admin privileges required');
+      return null;
+    }
+
+    try {
+      const response = await Scheduler.put(`/admin/users/${userId}`, userData);
+      return response.data.data.user;
+    } catch (err) {
+      if (!navigator.onLine) {
+        setError("You appear to be offline. Please check your internet connection.");
+      } else if (!err.response) {
+        setError("Cannot reach the server. Please try again later.");
+      } else {
+        setError(err.response?.data?.message || 'Failed to update user');
+      }
+      console.error('Error updating user:', err);
+      return null;
+    }
+  };
+
+  const deleteUser = async (userId) => {
+    if (!user || user.role !== 'admin') {
+      setError('Admin privileges required');
+      return false;
+    }
+
+    try {
+      await Scheduler.delete(`/admin/users/${userId}`);
+      return true;
+    } catch (err) {
+      if (!navigator.onLine) {
+        setError("You appear to be offline. Please check your internet connection.");
+      } else if (!err.response) {
+        setError("Cannot reach the server. Please try again later.");
+      } else {
+        setError(err.response?.data?.message || 'Failed to delete user');
+      }
+      console.error('Error deleting user:', err);
+      return false;
+    }
+  };
+
+  const updateUserRole = async (userId, role) => {
+    if (!user || user.role !== 'admin') {
+      setError('Admin privileges required');
+      return null;
+    }
+
+    try {
+      const response = await Scheduler.patch(`/admin/users/${userId}/role`, { role });
+      return response.data.data.user;
+    } catch (err) {
+      if (!navigator.onLine) {
+        setError("You appear to be offline. Please check your internet connection.");
+      } else if (!err.response) {
+        setError("Cannot reach the server. Please try again later.");
+      } else {
+        setError(err.response?.data?.message || 'Failed to update user role');
+      }
+      console.error('Error updating user role:', err);
+      return null;
+    }
+  };
+
+  const getSchedules = async (filters = {}) => {
+    if (!user || user.role !== 'admin') {
+      setError('Admin privileges required');
+      return null;
+    }
+
+    try {
+      const queryParams = new URLSearchParams();
+      if (filters.session_code) queryParams.append('session_code', filters.session_code);
+      if (filters.user_name) queryParams.append('user_name', filters.user_name);
+      
+      const url = `/admin/schedules${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+      const response = await Scheduler.get(url);
+      return response.data.data.schedules;
+    } catch (err) {
+      if (!navigator.onLine) {
+        setError("You appear to be offline. Please check your internet connection.");
+      } else if (!err.response) {
+        setError("Cannot reach the server. Please try again later.");
+      } else {
+        setError(err.response?.data?.message || 'Failed to fetch schedules');
+      }
+      console.error('Error fetching schedules:', err);
+      return null;
+    }
+  };
+
+  const updateSchedule = async (scheduleId, scheduleData) => {
+    if (!user || user.role !== 'admin') {
+      setError('Admin privileges required');
+      return null;
+    }
+
+    try {
+      const response = await Scheduler.put(`/admin/schedules/${scheduleId}`, scheduleData);
+      return response.data.data.schedule;
+    } catch (err) {
+      if (!navigator.onLine) {
+        setError("You appear to be offline. Please check your internet connection.");
+      } else if (!err.response) {
+        setError("Cannot reach the server. Please try again later.");
+      } else {
+        setError(err.response?.data?.message || 'Failed to update schedule');
+      }
+      console.error('Error updating schedule:', err);
+      return null;
+    }
+  };
+
+  const deleteSchedule = async (scheduleId) => {
+    if (!user || user.role !== 'admin') {
+      setError('Admin privileges required');
+      return false;
+    }
+
+    try {
+      await Scheduler.delete(`/admin/schedules/${scheduleId}`);
+      return true;
+    } catch (err) {
+      if (!navigator.onLine) {
+        setError("You appear to be offline. Please check your internet connection.");
+      } else if (!err.response) {
+        setError("Cannot reach the server. Please try again later.");
+      } else {
+        setError(err.response?.data?.message || 'Failed to delete schedule');
+      }
+      console.error('Error deleting schedule:', err);
+      return false;
+    }
+  };
+
+  const getAllSessions = async () => {
+    if (!user || user.role !== 'admin') {
+      setError('Admin privileges required');
+      return null;
+    }
+
+    try {
+      const response = await Scheduler.get('/admin/sessions');
+      return response.data.data.sessions;
+    } catch (err) {
+      if (!navigator.onLine) {
+        setError("You appear to be offline. Please check your internet connection.");
+      } else if (!err.response) {
+        setError("Cannot reach the server. Please try again later.");
+      } else {
+        setError(err.response?.data?.message || 'Failed to fetch sessions');
+      }
+      console.error('Error fetching sessions:', err);
+      return null;
+    }
   };
 
   return (
@@ -303,7 +574,17 @@ export const SessionProvider = ({ children }) => {
       addSchedule,
       getUserSchedules,
       setUserReady,
-      clearSession 
+      clearSession,
+      // Admin methods
+      getUsers,
+      getUser,
+      updateUser,
+      deleteUser,
+      updateUserRole,
+      getSchedules,
+      updateSchedule,
+      deleteSchedule,
+      getAllSessions
     }}>
       {children}
     </SessionContext.Provider>

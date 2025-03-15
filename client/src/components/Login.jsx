@@ -44,8 +44,12 @@ const Login = () => {
     
     const user = await loginUser(name, password);
     if (user) {
-      // Direct all users to join page, removing admin check
-      navigate('/join');
+      // Redirect to admin dashboard if user is admin, otherwise to join page
+      if (user.role === 'admin') {
+        navigate('/admin');
+      } else {
+        navigate('/join');
+      }
     }
   };
 

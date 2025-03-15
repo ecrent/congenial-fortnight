@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { SessionContext } from '../context/SessionContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 const Header = () => {
   const { user, clearSession } = useContext(SessionContext);
@@ -8,17 +8,26 @@ const Header = () => {
 
   const handleLogout = () => {
     clearSession();
-    navigate('/'); // 
+    navigate('/'); 
   };
 
   return (
     <header role="banner" className="mb-4">
       <div className="d-flex justify-content-between align-items-center py-3">
-        <h1 className="font-weight-light">Meeting Time Finder</h1>
+        <h1 className="font-weight-light">
+          <Link to="/" className="text-decoration-none text-dark">Meeting Time Finder</Link>
+        </h1>
         {user && (
-          <button className="btn btn-secondary" onClick={handleLogout}>
-            Logout
-          </button>
+          <div>
+            {user.role === 'admin' && (
+              <Link to="/admin" className="btn btn-primary me-2">
+                Admin Dashboard
+              </Link>
+            )}
+            <button className="btn btn-secondary" onClick={handleLogout}>
+              Logout
+            </button>
+          </div>
         )}
       </div>
       <hr className="mb-4" />
