@@ -98,6 +98,17 @@ const Results = () => {
     <div>
       <Header />
       <div className="card p-4 my-4">
+        {/* Add back navigation arrow */}
+        <div className="d-flex mb-2">
+          <button 
+            className="btn btn-sm btn-outline-secondary" 
+            onClick={handleBack}
+            title="Back to Schedule Input"
+          >
+            <i className="fas fa-arrow-left me-1"></i> Back to Schedule
+          </button>
+        </div>
+
         <h2 className="text-center mb-4">Optimal Meeting Times</h2>
         
         <div className="alert alert-info">
