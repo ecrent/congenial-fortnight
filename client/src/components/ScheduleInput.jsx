@@ -98,10 +98,65 @@ const ScheduleInput = () => {
     });
   };
   
+  // Add a helper function to check if time slots overlap
+  const doTimeSlotsOverlap = (slot1, slot2) => {
+    // Both slots are for the same day
+    if (parseInt(slot1.day_of_week) !== parseInt(slot2.day_of_week)) {
+      return false;
+    }
+    
+    // Convert times to minutes since midnight for easier comparison
+    const convertToMinutes = (timeString) => {
+      const [hours, minutes] = timeString.split(':').map(Number);
+      return hours * 60 + minutes;
+    };
+    
+    const slot1Start = convertToMinutes(slot1.start_time);
+    const slot1End = convertToMinutes(slot1.end_time);
+    const slot2Start = convertToMinutes(slot2.start_time);
+    const slot2End = convertToMinutes(slot2.end_time);
+    
+    // Check if the slots overlap
+    return (
+      (slot1Start < slot2End && slot1End > slot2Start) || 
+      (slot2Start < slot1End && slot2End > slot1Start)
+    );
+  };
+  
+  // Helper function to suggest a non-overlapping time
+  const suggestNonOverlappingTime = (newSlot, existingSlot) => {
+    // Suggest starting from the end of the existing slot
+    return {
+      start_time: existingSlot.end_time,
+      end_time: newSlot.end_time
+    };
+  };
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!user) return;
     
+    // Create a new time slot object for validation
+    const newSlot = {
+      day_of_week: formData.day_of_week,
+      start_time: formData.start_time,
+      end_time: formData.end_time
+    };
+    
+    // Check for overlap with existing schedules
+    const overlappingSlot = schedules.find(schedule => 
+      doTimeSlotsOverlap(newSlot, schedule)
+    );
+    
+    if (overlappingSlot) {
+   
+      setError(
+        `This time overlaps with your existing schedule. ` 
+      );
+      return;
+    }
+    
+    // Continue with existing code to add the schedule
     try {
       setLoading(true);
       const response = await Scheduler.post(`/schedules`, {
@@ -194,7 +249,7 @@ const ScheduleInput = () => {
     <>
       <Header />
       
-      <div className="page-container bg-pattern-light">
+      <main id="main-content" className="page-container bg-pattern-light">
         <div className="container">
           <div className="content-card bg-white p-4 p-md-5 shadow-sm rounded-3">
             {/* Session header with navigation */}
@@ -202,55 +257,55 @@ const ScheduleInput = () => {
               <button 
                 className="btn btn-sm btn-outline-secondary" 
                 onClick={handleBackToJoin}
-                title="Back to Join Page"
+                aria-label="Back to Join Page"
               >
-                <i className="fas fa-arrow-left me-1"></i> Back to Join
+                <i className="fas fa-arrow-left me-1" aria-hidden="true"></i> Back to Join
               </button>
               <div className="session-badge">
                 <span className="badge bg-primary rounded-pill px-3 py-2">
-                  <i className="fas fa-calendar-alt me-2"></i>
-                  {session?.session_code}
+                  <i className="fas fa-calendar-alt me-2" aria-hidden="true"></i>
+                  Session: {session?.session_code}
                 </span>
               </div>
             </div>
 
-            <h2 className="text-center mb-4 fw-bold text-primary">Set Your Availability</h2>
+            <h1 className="text-center mb-4 fw-bold text-primary">Set Your Availability</h1>
             
             {/* Session info card */}
             <div className="session-status card mb-4 border-0 bg-light">
               <div className="card-body">
                 <div className="d-flex justify-content-between align-items-center flex-wrap">
                   <div className="mb-2 mb-md-0">
-                    <h5 className="mb-1">
-                      <i className="fas fa-user-circle me-2 text-primary"></i>
+                    <h2 className="mb-1 h5">
+                      <i className="fas fa-user-circle me-2 text-primary" aria-hidden="true"></i>
                       Users in the Session
-                    </h5>
-                    <p className="text-muted mb-0 small">
+                    </h2>
+                    <div className="text-muted mb-0 small" role="region" aria-label="Session participants">
                       {usersList.length > 0 ? (
                         <>
                           {usersList.map((user, index) => (
                             <span key={user.id} className="participant-badge me-1 mb-1">
-                              <i className="fas fa-user me-1"></i>
+                              <i className="fas fa-user me-1" aria-hidden="true"></i>
                               {user.name}
-                              {user.is_ready && <i className="fas fa-check text-success ms-1"></i>}
+                              {user.is_ready && <i className="fas fa-check text-success ms-1" aria-label="Ready"></i>}
                             </span>
                           ))}
                         </>
                       ) : (
                         "No users have joined yet"
                       )}
-                    </p>
+                    </div>
                   </div>
                   <div className="ready-status text-center">
                     <div className="status-label mb-1">Group Status</div>
-                    <div className="progress" style={{ height: "20px" }}>
+                    <div className="progress" style={{ height: "20px" }} role="progressbar" 
+                         aria-valuenow={readyUsers} 
+                         aria-valuemin="0" 
+                         aria-valuemax={totalUsers}
+                         aria-label={`${readyUsers} of ${totalUsers} users ready`}>
                       <div 
                         className="progress-bar bg-success" 
-                        role="progressbar" 
                         style={{ width: `${totalUsers ? (readyUsers / totalUsers) * 100 : 0}%` }}
-                        aria-valuenow={readyUsers} 
-                        aria-valuemin="0" 
-                        aria-valuemax={totalUsers}
                       >
                         {readyUsers}/{totalUsers}
                       </div>
@@ -261,10 +316,10 @@ const ScheduleInput = () => {
             </div>
             
             {error && (
-              <div className="alert alert-danger alert-dismissible fade show">
-                <i className="fas fa-exclamation-circle me-2"></i>
+              <div className="alert alert-danger alert-dismissible fade show" role="alert">
+                <i className="fas fa-exclamation-circle me-2" aria-hidden="true"></i>
                 {error}
-                <button type="button" className="btn-close" onClick={() => setError(null)}></button>
+                <button type="button" className="btn-close" onClick={() => setError(null)} aria-label="Close"></button>
               </div>
             )}
             
@@ -426,6 +481,7 @@ const ScheduleInput = () => {
                     onClick={handleReadyClick} 
                     className={`btn ${isCurrentUserReady ? 'btn-warning' : 'btn-success'} btn-lg transition-hover`}
                     disabled={schedules.length === 0 || toggling}
+                    aria-pressed={isCurrentUserReady ? "true" : "false"}
                   >
                     { toggling ? (
                       <>
@@ -434,12 +490,12 @@ const ScheduleInput = () => {
                       </>
                     ) : isCurrentUserReady ? (
                       <>
-                        <i className="fas fa-times-circle me-2"></i>
+                        <i className="fas fa-times-circle me-2" aria-hidden="true"></i>
                         I'm Not Ready Yet - Make Changes
                       </>
                     ) : (
                       <>
-                        <i className="fas fa-check-circle me-2"></i>
+                        <i className="fas fa-check-circle me-2" aria-hidden="true"></i>
                         I'm Done Adding My Availability
                       </>
                     )}
@@ -455,7 +511,7 @@ const ScheduleInput = () => {
             </div>
           </div>
         </div>
-      </div>
+      </main>
     </>
   );
 };

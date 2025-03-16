@@ -104,16 +104,20 @@ const UserRegistration = () => {
     <div className="d-flex flex-column min-vh-100 bg-pattern">
       <Header />
       
-      <div className="home-container flex-grow-1 py-5">
+      <main id="main-content" className="home-container flex-grow-1 py-5">
         <div className="row justify-content-center">
           <div className="col-md-6 col-lg-5">
             <div className="card register-card">
               <div className="card-body p-4 p-md-5">
-                <h2 className="text-center mb-4">Register Your Account</h2>
+                <h1 className="text-center mb-4 h2">Register Your Account</h1>
                 
-                {apiError && <div className="alert alert-danger">{apiError}</div>}
+                {apiError && (
+                  <div className="alert alert-danger" role="alert">
+                    {apiError}
+                  </div>
+                )}
                 
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit} noValidate>
                   <div className="mb-3">
                     <label htmlFor="userName" className="form-label">Your Name</label>
                     <input
@@ -125,9 +129,15 @@ const UserRegistration = () => {
                       onChange={handleInputChange}
                       placeholder="Enter your name"
                       required
+                      aria-required="true"
+                      aria-describedby="nameHelp nameFeedback"
+                      aria-invalid={validationErrors.name ? "true" : "false"}
                     />
+                    <small id="nameHelp" className="form-text text-muted">
+                      Use 3-30 characters, letters, numbers, underscores, or hyphens
+                    </small>
                     {validationErrors.name && (
-                      <div className="invalid-feedback">{validationErrors.name}</div>
+                      <div className="invalid-feedback" id="nameFeedback">{validationErrors.name}</div>
                     )}
                   </div>
                   
@@ -142,9 +152,12 @@ const UserRegistration = () => {
                       onChange={handleInputChange}
                       placeholder="Enter your email"
                       required
+                      aria-required="true"
+                      aria-describedby="emailFeedback"
+                      aria-invalid={validationErrors.email ? "true" : "false"}
                     />
                     {validationErrors.email && (
-                      <div className="invalid-feedback">{validationErrors.email}</div>
+                      <div className="invalid-feedback" id="emailFeedback">{validationErrors.email}</div>
                     )}
                   </div>
                   
@@ -159,9 +172,15 @@ const UserRegistration = () => {
                       onChange={handleInputChange}
                       placeholder="Create a password (min. 6 characters)"
                       required
+                      aria-required="true"
+                      aria-describedby="passwordHelp passwordFeedback"
+                      aria-invalid={validationErrors.password ? "true" : "false"}
                     />
+                    <small id="passwordHelp" className="form-text text-muted">
+                      Password must be at least 6 characters long
+                    </small>
                     {validationErrors.password && (
-                      <div className="invalid-feedback">{validationErrors.password}</div>
+                      <div className="invalid-feedback" id="passwordFeedback">{validationErrors.password}</div>
                     )}
                   </div>
                   
@@ -170,6 +189,8 @@ const UserRegistration = () => {
                       type="submit" 
                       className="btn btn-primary" 
                       disabled={loading || !isFormValid}
+                      aria-label={loading ? "Registering..." : "Register"}
+                      aria-busy={loading ? "true" : "false"}
                     >
                       {loading ? 'Registering...' : 'Continue'}
                     </button>
@@ -183,7 +204,7 @@ const UserRegistration = () => {
             </div>
           </div>
         </div>
-      </div>
+      </main>
       
       <Footer />
     </div>

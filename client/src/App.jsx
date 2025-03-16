@@ -31,6 +31,15 @@ function App() {
     <SessionProvider>
       <div className='container-fluid p-0'>
         <Router>
+          {/* Skip to content link - visible only when focused */}
+          <a 
+            href="#main-content" 
+            className="skip-link"
+            aria-label="Skip to main content"
+          >
+            Skip to main content
+          </a>
+          
           <Routes>
             {/* Original routes */}
             <Route path="/" element={<Home />} />

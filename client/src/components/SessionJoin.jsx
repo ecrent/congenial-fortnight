@@ -129,33 +129,38 @@ const SessionJoin = () => {
     <>
       <Header />
       
-      <div className="page-container bg-pattern-light">
+      <main id="main-content" className="page-container bg-pattern-light">
         <div className="container">
           <div className="content-card p-4 p-md-5 shadow-sm">
-            <h2 className="text-center mb-4 fw-bold text-primary">Join or Create a Session</h2>
+            <h1 className="text-center mb-4 fw-bold text-primary">Join or Create a Session</h1>
             
             {error && (
               <div className="alert alert-danger alert-dismissible fade show" role="alert">
-                <i className="fas fa-exclamation-circle me-2"></i>
+                <i className="fas fa-exclamation-circle me-2" aria-hidden="true"></i>
                 {error}
-                <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                <button 
+                  type="button" 
+                  className="btn-close" 
+                  data-bs-dismiss="alert" 
+                  aria-label="Close"
+                ></button>
               </div>
             )}
             
             <div className="row g-4 mb-5">
               <div className="col-md-6">
-                <div className="session-option p-4 h-100 bg-white">
+                <section className="session-option p-4 h-100 bg-white" aria-labelledby="join-heading">
                   <div className="text-center mb-3">
                     <div className="session-icon-wrapper mb-3">
-                      <i className="fas fa-sign-in-alt text-primary"></i>
+                      <i className="fas fa-sign-in-alt text-primary" aria-hidden="true"></i>
                     </div>
-                    <h5 className="mb-3 fw-bold">Join Existing Session</h5>
+                    <h2 className="mb-3 fw-bold h5" id="join-heading">Join Existing Session</h2>
                   </div>
                   <form onSubmit={handleJoin} className="d-flex flex-column h-100">
                     <div className="flex-grow-1">
                       <label htmlFor="sessionCode" className="form-label">Session Code</label>
                       <div className="input-group input-group-lg">
-                        <span className="input-group-text bg-light">
+                        <span className="input-group-text bg-light" aria-hidden="true">
                           <i className="fas fa-hashtag"></i>
                         </span>
                         <input
@@ -168,9 +173,10 @@ const SessionJoin = () => {
                           maxLength="8"
                           disabled={joinLoading}
                           required
+                          aria-describedby="sessionCodeHelp"
                         />
                       </div>
-                      <small className="text-muted mt-2 d-block">
+                      <small id="sessionCodeHelp" className="text-muted mt-2 d-block">
                         Enter the 8-character code provided by the session creator
                       </small>
                     </div>
@@ -196,16 +202,16 @@ const SessionJoin = () => {
                       </div>
                     </div>
                   </form>
-                </div>
+                </section>
               </div>
               
               <div className="col-md-6">
-                <div className="session-option p-4 h-100 bg-white">
+                <section className="session-option p-4 h-100 bg-white" aria-labelledby="create-heading">
                   <div className="text-center mb-3">
                     <div className="session-icon-wrapper mb-3">
-                      <i className="fas fa-plus-circle text-warning"></i>
+                      <i className="fas fa-plus-circle text-warning" aria-hidden="true"></i>
                     </div>
-                    <h5 className="mb-3 fw-bold">Create New Session</h5>
+                    <h2 className="mb-3 fw-bold h5" id="create-heading">Create New Session</h2>
                   </div>
                   <div className="d-flex flex-column h-100">
                     <div className="flex-grow-1">
@@ -235,19 +241,19 @@ const SessionJoin = () => {
                       </div>
                     </div>
                   </div>
-                </div>
+                </section>
               </div>
             </div>
             
             {/* Display user's active sessions with improved styling */}
-            <div className="active-sessions mt-5">
+            <section className="active-sessions mt-5" aria-labelledby="active-sessions-heading">
               <div className="section-header p-2 rounded-top">
-                <h3 className="mb-0 text-center session-header-text">Your Active Sessions</h3>
+                <h2 id="active-sessions-heading" className="mb-0 text-center session-header-text h5">Your Active Sessions</h2>
               </div>
               
               <div className="p-4 bg-white rounded-bottom shadow-sm">
                 {loadingSessions ? (
-                  <div className="text-center my-4">
+                  <div className="text-center my-4" aria-live="polite">
                     <div className="spinner-border text-primary" role="status">
                       <span className="visually-hidden">Loading...</span>
                     </div>
@@ -255,12 +261,13 @@ const SessionJoin = () => {
                   </div>
                 ) : userSessions.length > 0 ? (
                   <div className="table-responsive">
-                    <table className="table table-hover align-middle">
+                    <table className="table table-hover align-middle" aria-label="Your active sessions">
+                      <caption className="visually-hidden">List of your active sessions and actions you can take</caption>
                       <thead className="table-light">
                         <tr>
-                          <th>Session Code</th>
-                          <th>Participants</th>
-                          <th className="text-center">Actions</th>
+                          <th scope="col">Session Code</th>
+                          <th scope="col">Participants</th>
+                          <th scope="col" className="text-center">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -327,19 +334,19 @@ const SessionJoin = () => {
                     </table>
                   </div>
                 ) : (
-                  <div className="empty-state text-center p-5">
+                  <div className="empty-state text-center p-5" role="status">
                     <div className="empty-state-icon mb-4">
-                      <i className="fas fa-calendar-day fa-4x text-secondary opacity-50"></i>
+                      <i className="fas fa-calendar-day fa-4x text-secondary opacity-50" aria-hidden="true"></i>
                     </div>
-                    <h4 className="text-primary">No Active Sessions</h4>
+                    <h3 className="text-primary h4">No Active Sessions</h3>
                     <p className="text-muted mb-4">You haven't joined any sessions yet. Create a new one or join with a session code.</p>
                   </div>
                 )}
               </div>
-            </div>
+            </section>
           </div>
         </div>
-      </div>
+      </main>
     </>
   );
 };

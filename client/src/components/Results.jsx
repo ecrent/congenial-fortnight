@@ -109,7 +109,7 @@ const Results = () => {
     <>
       <Header />
       
-      <div className="page-container bg-pattern-light">
+      <main id="main-content" className="page-container bg-pattern-light">
         <div className="container">
           <div className="content-card bg-white p-4 p-md-5 shadow-sm rounded-3">
             {/* Add back navigation arrow */}
@@ -117,28 +117,20 @@ const Results = () => {
               <button 
                 className="btn btn-sm btn-outline-secondary" 
                 onClick={handleBack}
-                title="Back to Schedule Input"
+                aria-label="Back to Schedule Input"
               >
-                <i className="fas fa-arrow-left me-1"></i> Back to Schedule
+                <i className="fas fa-arrow-left me-1" aria-hidden="true"></i> Back to Schedule
               </button>
               <div className="session-badge">
                 <span className="badge bg-primary rounded-pill px-3 py-2">
-                  <i className="fas fa-calendar-alt me-2"></i>
-                  {session?.session_code}
+                  <i className="fas fa-calendar-alt me-2" aria-hidden="true"></i>
+                  Session: {session?.session_code}
                 </span>
               </div>
             </div>
 
-            <h2 className="text-center mb-4 fw-bold text-primary">Optimal Meeting Times</h2>
-            
-            <div className="session-status card mb-4 border-0 bg-light">
-              <div className="card-body">
-                <p className="mb-0">
-                  <i className="fas fa-user-circle me-2 text-primary"></i>
-                  <strong>Your name:</strong> {user?.name}
-                </p>
-              </div>
-            </div>
+            <h1 className="text-center mb-4 fw-bold text-primary">Optimal Meeting Times</h1>
+
             
             {error && (
               <div className="alert alert-danger">
@@ -176,14 +168,14 @@ const Results = () => {
             
             <div className="card available-times shadow-sm border-0">
               <div className="card-header bg-light border-0">
-                <h5 className="mb-0">
-                  <i className="fas fa-list-alt me-2 text-primary"></i>
+                <h2 className="mb-0 h5">
+                  <i className="fas fa-list-alt me-2 text-primary" aria-hidden="true"></i>
                   Best Meeting Times
-                </h5>
+                </h2>
               </div>
               <div className="card-body">
                 {loading ? (
-                  <div className="text-center my-4">
+                  <div className="text-center my-4" aria-live="polite">
                     <div className="spinner-border text-primary" role="status">
                       <span className="visually-hidden">Loading...</span>
                     </div>
@@ -191,13 +183,14 @@ const Results = () => {
                   </div>
                 ) : optimalTimes.length > 0 ? (
                   <div className="table-responsive">
-                    <table className="table table-hover align-middle">
+                    <table className="table table-hover align-middle" aria-label="Optimal meeting times">
+                      <caption className="visually-hidden">List of optimal meeting times sorted by day and time</caption>
                       <thead className="table-light">
                         <tr>
-                          <th>Day</th>
-                          <th>Start Time</th>
-                          <th>End Time</th>
-                          <th>Users Available</th>
+                          <th scope="col">Day</th>
+                          <th scope="col">Start Time</th>
+                          <th scope="col">End Time</th>
+                          <th scope="col">Users Available</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -233,9 +226,9 @@ const Results = () => {
                     </table>
                   </div>
                 ) : (
-                  <div className="empty-state text-center p-4">
+                  <div className="empty-state text-center p-4" role="status">
                     <div className="empty-state-icon mb-3">
-                      <i className="fas fa-calendar-times fa-3x text-warning opacity-50"></i>
+                      <i className="fas fa-calendar-times fa-3x text-warning opacity-50" aria-hidden="true"></i>
                     </div>
                     <p className="text-warning fw-bold mb-1">No Common Times Found</p>
                     <p className="text-muted">Try adjusting the minimum duration or ask participants to add more available times.</p>
@@ -256,7 +249,7 @@ const Results = () => {
             </div>
           </div>
         </div>
-      </div>
+      </main>
     </>
   );
 };

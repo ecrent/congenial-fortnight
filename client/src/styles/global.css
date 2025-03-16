@@ -520,3 +520,38 @@ header h1 {
   padding-top: 0.75rem;
   padding-bottom: 0.75rem;
 }
+
+/* Accessibility improvements */
+.skip-link {
+  background: var(--primary);
+  color: white;
+  font-weight: 700;
+  left: 0;
+  padding: 1rem;
+  position: absolute;
+  transform: translateY(-120%);
+  transition: transform 0.3s;
+  z-index: 1500;
+}
+
+.skip-link:focus {
+  transform: translateY(0%);
+  text-decoration: none;
+  color: white;
+  outline: 3px solid var(--warning);
+}
+
+/* Improve focus visibility for all interactive elements */
+a:focus,
+button:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Ensure form labels are visible */
+.form-label {
+  font-weight: 500;
+}
