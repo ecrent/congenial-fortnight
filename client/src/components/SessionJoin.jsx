@@ -106,10 +106,10 @@ const SessionJoin = () => {
     <>
       <Header />
       
-      <div className="page-container">
+      <div className="page-container bg-pattern-light">
         <div className="container">
-          <div className="content-card p-4 p-md-5">
-            <h2 className="text-center mb-4 fw-bold">Join or Create a Session</h2>
+          <div className="content-card p-4 p-md-5 shadow-sm">
+            <h2 className="text-center mb-4 fw-bold text-primary">Join or Create a Session</h2>
             
             {error && (
               <div className="alert alert-danger alert-dismissible fade show" role="alert">
@@ -121,18 +121,23 @@ const SessionJoin = () => {
             
             <div className="row g-4 mb-5">
               <div className="col-md-6">
-                <div className="session-option p-4">
-                  <h5 className="mb-3"><i className="fas fa-sign-in-alt me-2 text-primary"></i>Join Existing Session</h5>
-                  <form onSubmit={handleJoin}>
-                    <div className="mb-3">
+                <div className="session-option p-4 h-100 bg-white">
+                  <div className="text-center mb-3">
+                    <div className="session-icon-wrapper mb-3">
+                      <i className="fas fa-sign-in-alt text-primary"></i>
+                    </div>
+                    <h5 className="mb-3 fw-bold">Join Existing Session</h5>
+                  </div>
+                  <form onSubmit={handleJoin} className="d-flex flex-column h-100">
+                    <div className="flex-grow-1">
                       <label htmlFor="sessionCode" className="form-label">Session Code</label>
-                      <div className="input-group">
-                        <span className="input-group-text">
+                      <div className="input-group input-group-lg">
+                        <span className="input-group-text bg-light">
                           <i className="fas fa-hashtag"></i>
                         </span>
                         <input
                           type="text"
-                          className="form-control"
+                          className="form-control form-control-lg"
                           id="sessionCode"
                           value={sessionCode}
                           onChange={(e) => setSessionCode(e.target.value.toUpperCase())}
@@ -145,11 +150,11 @@ const SessionJoin = () => {
                         Enter the 8-character code provided by the session creator
                       </small>
                     </div>
-                    <div style={{ marginTop: '4.5rem' }}>
+                    <div className="button-container">
                       <div className="d-grid">
                         <button 
                           type="submit" 
-                          className="btn btn-primary btn-lg" 
+                          className="btn btn-primary btn-lg transition-hover" 
                           disabled={loading || !sessionCode.trim()}
                         >
                           {loading ? (
@@ -171,43 +176,52 @@ const SessionJoin = () => {
               </div>
               
               <div className="col-md-6">
-                <div className="session-option p-4">
-                  <h5 className="mb-3"><i className="fas fa-plus-circle me-2 text-accent"></i>Create New Session</h5>
-                  <p className="text-muted mb-4">
-                    Start a new planning session and invite your team members to join using your unique session code.
-                  </p>
-                  <div style={{ marginTop: '6rem' }}>
-                    <div className="d-grid">
-                      <button 
-                        onClick={handleCreate} 
-                        className="btn btn-accent btn-lg" 
-                        disabled={loading}
-                      >
-                        {loading ? (
-                          <>
-                            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                            Creating...
-                          </>
-                        ) : (
-                          <>
-                            <i className="fas fa-plus-circle me-2"></i>
-                            Create New Session
-                          </>
-                        )}
-                      </button>
+                <div className="session-option p-4 h-100 bg-white">
+                  <div className="text-center mb-3">
+                    <div className="session-icon-wrapper mb-3">
+                      <i className="fas fa-plus-circle text-warning"></i>
+                    </div>
+                    <h5 className="mb-3 fw-bold">Create New Session</h5>
+                  </div>
+                  <div className="d-flex flex-column h-100">
+                    <div className="flex-grow-1">
+                      <p className="text-muted">
+                        Start a new planning session and invite your team members to join using your unique session code.
+                      </p>
+                    </div>
+                    <div className="button-container">
+                      <div className="d-grid">
+                        <button 
+                          onClick={handleCreate} 
+                          className="btn btn-warning btn-lg transition-hover" 
+                          disabled={loading}
+                        >
+                          {loading ? (
+                            <>
+                              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                              Creating...
+                            </>
+                          ) : (
+                            <>
+                              <i className="fas fa-plus-circle me-2"></i>
+                              Create New Session
+                            </>
+                          )}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-
+            
             {/* Display user's active sessions with improved styling */}
             <div className="active-sessions mt-5">
-              <div className="section-header p-3 rounded">
+              <div className="section-header p-2 rounded-top">
                 <h3 className="mb-0 text-center session-header-text">Your Active Sessions</h3>
               </div>
               
-              <div className="p-4">
+              <div className="p-4 bg-white rounded-bottom shadow-sm">
                 {loadingSessions ? (
                   <div className="text-center my-4">
                     <div className="spinner-border text-primary" role="status">
@@ -217,7 +231,7 @@ const SessionJoin = () => {
                   </div>
                 ) : userSessions.length > 0 ? (
                   <div className="table-responsive">
-                    <table className="table table-hover">
+                    <table className="table table-hover align-middle">
                       <thead className="table-light">
                         <tr>
                           <th>Session Code</th>
@@ -230,15 +244,16 @@ const SessionJoin = () => {
                           <tr key={session.session_code} className="session-row">
                             <td 
                               onClick={() => handleSessionClick(session.session_code)}
-                              className="fw-bold session-code"
+                              className="fw-bold session-code cursor-pointer"
                             >
                               <i className="fas fa-calendar-alt me-2 text-primary"></i>
                               {session.session_code}
                             </td>
-                            <td onClick={() => handleSessionClick(session.session_code)}>
+                            <td onClick={() => handleSessionClick(session.session_code)} className="cursor-pointer">
                               <div className="participant-list">
                                 {session.user_names.map((name, index) => (
                                   <span key={index} className="participant-badge">
+                                    <i className="fas fa-user-circle me-1 text-secondary"></i>
                                     {name}
                                   </span>
                                 ))}
@@ -268,11 +283,11 @@ const SessionJoin = () => {
                     </table>
                   </div>
                 ) : (
-                  <div className="empty-state text-center p-4">
-                    <div className="empty-state-icon mb-3">
+                  <div className="empty-state text-center p-5">
+                    <div className="empty-state-icon mb-4">
                       <i className="fas fa-calendar-day fa-4x text-secondary opacity-50"></i>
                     </div>
-                    <h4>No Active Sessions</h4>
+                    <h4 className="text-primary">No Active Sessions</h4>
                     <p className="text-muted mb-4">You haven't joined any sessions yet. Create a new one or join with a session code.</p>
                   </div>
                 )}
