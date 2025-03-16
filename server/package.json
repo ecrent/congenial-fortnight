@@ -1,7 +1,12 @@
 {
   "scripts": {
     "start": "nodemon index.js",
-    "test": "jest"
+    "test": "jest --config=jest.config.js",
+    "test:watch": "jest --config=jest.config.js --watch",
+    "test:coverage": "jest --config=jest.config.js --coverage",
+    "test:integration": "jest --config=jest.config.js --testPathPattern=__tests__/integration",
+    "test:security": "jest --config=jest.config.js --testPathPattern=__tests__/security",
+    "test:database": "jest --config=jest.config.js --testPathPattern=__tests__/database"
   },
   "dependencies": {
     "aws-sdk": "^2.1692.0",
@@ -21,6 +26,6 @@
   "devDependencies": {
     "jest": "^29.7.0",
     "nodemon": "^3.1.0",
-    "supertest": "^7.0.0"
+    "supertest": "^6.3.3"
   }
 }
