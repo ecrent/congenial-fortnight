@@ -31,18 +31,29 @@ const Results = () => {
         // Fix the URL to use session_code instead of id
         const response = await Scheduler.get(`/users/session/${session.session_code}`);
         
-        // If not all users are ready, go back to schedule input
+        // More strict checks to prevent single user from seeing results:
+        // 1. Must have at least 2 users
+        // 2. All users must be ready
         const allUsers = response.data.data.users || [];
         const readyUsers = allUsers.filter(u => u.is_ready);
-        if (allUsers.length === 0 || readyUsers.length < allUsers.length) {
+        
+        if (allUsers.length < 2 || readyUsers.length !== allUsers.length || readyUsers.length < 2) {
+          // Redirect back to schedule page if conditions aren't met
           navigate('/schedule');
         }
       } catch (err) {
         console.error('Error fetching users:', err);
+        // If there's an error fetching user data, redirect to be safe
+        navigate('/schedule');
       }
     };
     
     fetchUsers();
+    // Also set up a periodic check to handle dynamic changes
+    const interval = setInterval(fetchUsers, 5000);
+    
+    // Clean up interval on unmount
+    return () => clearInterval(interval);
   }, [session, navigate]);
   
   // Fetch optimal meeting times
@@ -95,99 +106,158 @@ const Results = () => {
   };
   
   return (
-    <div>
+    <>
       <Header />
-      <div className="card p-4 my-4">
-        {/* Add back navigation arrow */}
-        <div className="d-flex mb-2">
-          <button 
-            className="btn btn-sm btn-outline-secondary" 
-            onClick={handleBack}
-            title="Back to Schedule Input"
-          >
-            <i className="fas fa-arrow-left me-1"></i> Back to Schedule
-          </button>
-        </div>
-
-        <h2 className="text-center mb-4">Optimal Meeting Times</h2>
-        
-        <div className="alert alert-info">
-          <strong>Session:</strong> {session?.session_code} | <strong>Name:</strong> {user?.name}
-        </div>
-        
-        {error && (
-          <div className="alert alert-danger">
-            {error}
-          </div>
-        )}
-        
-        <div className="mb-4">
-          <label htmlFor="duration" className="form-label">
-            Minimum meeting duration (minutes):
-          </label>
-          <select 
-            id="duration" 
-            className="form-select" 
-            value={duration} 
-            onChange={handleDurationChange}
-          >
-            <option value="30">30 minutes</option>
-            <option value="60">1 hour</option>
-            <option value="90">1.5 hours</option>
-            <option value="120">2 hours</option>
-          </select>
-        </div>
-        
-        {loading ? (
-          <div className="text-center my-4">
-            <div className="spinner-border text-primary" role="status">
-              <span className="visually-hidden">Loading...</span>
+      
+      <div className="page-container bg-pattern-light">
+        <div className="container">
+          <div className="content-card bg-white p-4 p-md-5 shadow-sm rounded-3">
+            {/* Add back navigation arrow */}
+            <div className="d-flex justify-content-between align-items-center mb-4">
+              <button 
+                className="btn btn-sm btn-outline-secondary" 
+                onClick={handleBack}
+                title="Back to Schedule Input"
+              >
+                <i className="fas fa-arrow-left me-1"></i> Back to Schedule
+              </button>
+              <div className="session-badge">
+                <span className="badge bg-primary rounded-pill px-3 py-2">
+                  <i className="fas fa-calendar-alt me-2"></i>
+                  {session?.session_code}
+                </span>
+              </div>
             </div>
-            <p className="mt-2">Calculating best times...</p>
+
+            <h2 className="text-center mb-4 fw-bold text-primary">Optimal Meeting Times</h2>
+            
+            <div className="session-status card mb-4 border-0 bg-light">
+              <div className="card-body">
+                <p className="mb-0">
+                  <i className="fas fa-user-circle me-2 text-primary"></i>
+                  <strong>Your name:</strong> {user?.name}
+                </p>
+              </div>
+            </div>
+            
+            {error && (
+              <div className="alert alert-danger">
+                <i className="fas fa-exclamation-circle me-2"></i>
+                {error}
+              </div>
+            )}
+            
+            <div className="card availability-form mb-4 shadow-sm border-0">
+              <div className="card-header bg-light border-0">
+                <h5 className="mb-0">
+                  <i className="fas fa-clock me-2 text-primary"></i>
+                  Meeting Duration
+                </h5>
+              </div>
+              <div className="card-body">
+                <div className="mb-3">
+                  <label htmlFor="duration" className="form-label">
+                    Minimum meeting duration:
+                  </label>
+                  <select 
+                    id="duration" 
+                    className="form-select form-select-lg" 
+                    value={duration} 
+                    onChange={handleDurationChange}
+                  >
+                    <option value="30">30 minutes</option>
+                    <option value="60">1 hour</option>
+                    <option value="90">1.5 hours</option>
+                    <option value="120">2 hours</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            
+            <div className="card available-times shadow-sm border-0">
+              <div className="card-header bg-light border-0">
+                <h5 className="mb-0">
+                  <i className="fas fa-list-alt me-2 text-primary"></i>
+                  Best Meeting Times
+                </h5>
+              </div>
+              <div className="card-body">
+                {loading ? (
+                  <div className="text-center my-4">
+                    <div className="spinner-border text-primary" role="status">
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
+                    <p className="mt-2">Calculating best times...</p>
+                  </div>
+                ) : optimalTimes.length > 0 ? (
+                  <div className="table-responsive">
+                    <table className="table table-hover align-middle">
+                      <thead className="table-light">
+                        <tr>
+                          <th>Day</th>
+                          <th>Start Time</th>
+                          <th>End Time</th>
+                          <th>Users Available</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {optimalTimes.map((time, index) => (
+                          <tr key={index}>
+                            <td>
+                              <span className="day-badge">{getDayName(parseInt(time.day_of_week))}</span>
+                            </td>
+                            <td>{formatTime(time.start_time)}</td>
+                            <td>{formatTime(time.end_time)}</td>
+                            <td>
+                              <div className="d-flex align-items-center">
+                                <div className="me-2">
+                                  <span className="badge bg-success rounded-pill">
+                                    {time.user_count}/{time.total_users}
+                                  </span>
+                                </div>
+                                {time.available_users && (
+                                  <div className="user-list">
+                                    {time.available_users.map((username, i) => (
+                                      <span key={i} className="participant-badge me-1">
+                                        <i className="fas fa-user me-1"></i>
+                                        {username}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="empty-state text-center p-4">
+                    <div className="empty-state-icon mb-3">
+                      <i className="fas fa-calendar-times fa-3x text-warning opacity-50"></i>
+                    </div>
+                    <p className="text-warning fw-bold mb-1">No Common Times Found</p>
+                    <p className="text-muted">Try adjusting the minimum duration or ask participants to add more available times.</p>
+                  </div>
+                )}
+              </div>
+              <div className="card-footer bg-white border-0 pt-0 pb-3">
+                <div className="d-grid">
+                  <button 
+                    onClick={handleBack} 
+                    className="btn btn-primary btn-lg transition-hover"
+                  >
+                    <i className="fas fa-arrow-left me-2"></i>
+                    Back to Schedule Input
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
-        ) : optimalTimes.length > 0 ? (
-          <div className="table-responsive">
-            <table className="table table-striped">
-              <thead>
-                <tr>
-                  <th>Day</th>
-                  <th>Start Time</th>
-                  <th>End Time</th>
-                  <th>Users Available</th>
-                </tr>
-              </thead>
-              <tbody>
-                {optimalTimes.map((time, index) => (
-                  <tr key={index}>
-                    <td>{getDayName(parseInt(time.day_of_week))}</td>
-                    <td>{formatTime(time.start_time)}</td>
-                    <td>{formatTime(time.end_time)}</td>
-                    <td>
-                      {time.user_count} / {time.total_users}
-                      {time.available_users && (
-                        <span className="ms-2 text-muted">
-                          ({time.available_users.join(', ')})
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className="alert alert-warning">
-            No common available times found. Try adjusting the minimum duration or ask participants to add more available times.
-          </div>
-        )}
-        
-        <div className="d-flex justify-content-between mt-4">
-          <button onClick={handleBack} className="btn btn-secondary">
-            Back to Schedule Input
-          </button>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

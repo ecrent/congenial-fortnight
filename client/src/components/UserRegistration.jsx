@@ -41,8 +41,6 @@ const UserRegistration = () => {
       case 'password':
         if (value.length < 6) {
           errors.password = 'Password must be at least 6 characters long';
-        } else if (!/(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]/.test(value)) {
-          errors.password = 'Password must include letters, numbers, and special characters';
         } else {
           errors.password = '';
         }

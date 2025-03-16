@@ -32,12 +32,13 @@ body {
   border: none;
   border-radius: 12px;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: none;
 }
 
+/* Remove hover effects for ALL cards */
 .card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.1);
+  transform: none !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08) !important;
 }
 
 /* Specific card styles for login, register, and session pages */
@@ -412,6 +413,13 @@ header h1 {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
+/* But completely disable hover effects for all other elements */
+.card:hover,
+.session-option:hover {
+  transform: none !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08) !important;
+}
+
 .participant-badge {
   display: inline-block;
   background-color: var(--neutral-200);
@@ -446,4 +454,69 @@ header h1 {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Schedule Input Page Styles */
+.session-badge .badge {
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+.ready-status {
+  min-width: 150px;
+}
+
+.status-label {
+  font-size: 0.875rem;
+  color: var(--gray-600);
+  font-weight: 500;
+}
+
+.session-status {
+  border-left: 4px solid var(--primary) !important;
+}
+
+.availability-form .form-control:focus,
+.availability-form .form-select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 0.25rem rgba(78, 108, 239, 0.25);
+}
+
+.day-badge {
+  display: inline-block;
+  font-weight: 500;
+  color: var(--gray-800);
+}
+
+.content-card {
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.empty-state {
+  background-color: var(--gray-100);
+  border-radius: 8px;
+  border: 1px dashed var(--gray-300);
+}
+
+.empty-state-icon {
+  margin: 0 auto;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.available-times .card-body {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.available-times .table th,
+.available-times .table td {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
 }

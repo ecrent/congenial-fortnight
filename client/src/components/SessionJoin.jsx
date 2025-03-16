@@ -7,6 +7,11 @@ const SessionJoin = () => {
   const [sessionCode, setSessionCode] = useState('');
   const [userSessions, setUserSessions] = useState([]);
   const [loadingSessions, setLoadingSessions] = useState(false);
+  const [joinLoading, setJoinLoading] = useState(false); // Loading state for join button
+  const [createLoading, setCreateLoading] = useState(false); // Loading state for create button
+  const [loadingSessionCode, setLoadingSessionCode] = useState(''); // Track which session button is loading
+  const [loadingAction, setLoadingAction] = useState(''); // Track which action (join/leave) is loading
+  
   const { 
     createSession, 
     joinSession, 
@@ -50,10 +55,12 @@ const SessionJoin = () => {
   // When creating a session
   const handleCreate = async (e) => {
     e.preventDefault();
+    setCreateLoading(true);
     const session = await createSession();
     if (session) {
       navigate('/schedule');
     }
+    setCreateLoading(false);
   };
 
   // When joining a session
@@ -61,18 +68,28 @@ const SessionJoin = () => {
     e.preventDefault();
     if (!sessionCode.trim()) return;
     
+    setJoinLoading(true);
     const session = await joinSession(sessionCode);
     if (session) {
       navigate('/schedule');
     }
+    setJoinLoading(false);
   };
   
   // Navigate to an existing session
   const handleSessionClick = (sessionCode) => {
+    setLoadingSessionCode(sessionCode);
+    setLoadingAction('join');
+    
     joinSession(sessionCode).then(session => {
       if (session) {
         navigate('/schedule');
       }
+      setLoadingSessionCode('');
+      setLoadingAction('');
+    }).catch(() => {
+      setLoadingSessionCode('');
+      setLoadingAction('');
     });
   };
   
@@ -81,11 +98,17 @@ const SessionJoin = () => {
     e.stopPropagation(); // Prevent navigating to the session
     
     if (window.confirm(`Are you sure you want to leave session ${sessionCode}?`)) {
+      setLoadingSessionCode(sessionCode);
+      setLoadingAction('leave');
+      
       const success = await leaveSession(sessionCode);
       if (success) {
         // Update the sessions list
         setUserSessions(userSessions.filter(s => s.session_code !== sessionCode));
       }
+      
+      setLoadingSessionCode('');
+      setLoadingAction('');
     }
   };
 
@@ -143,6 +166,7 @@ const SessionJoin = () => {
                           onChange={(e) => setSessionCode(e.target.value.toUpperCase())}
                           placeholder="Enter 8-character code"
                           maxLength="8"
+                          disabled={joinLoading}
                           required
                         />
                       </div>
@@ -155,12 +179,12 @@ const SessionJoin = () => {
                         <button 
                           type="submit" 
                           className="btn btn-primary btn-lg transition-hover" 
-                          disabled={loading || !sessionCode.trim()}
+                          disabled={joinLoading || !sessionCode.trim()}
                         >
-                          {loading ? (
+                          {joinLoading ? (
                             <>
                               <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                              Joining...
+                              Loading...
                             </>
                           ) : (
                             <>
@@ -194,12 +218,12 @@ const SessionJoin = () => {
                         <button 
                           onClick={handleCreate} 
                           className="btn btn-warning btn-lg transition-hover" 
-                          disabled={loading}
+                          disabled={createLoading}
                         >
-                          {loading ? (
+                          {createLoading ? (
                             <>
                               <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                              Creating...
+                              Loading...
                             </>
                           ) : (
                             <>
@@ -264,16 +288,36 @@ const SessionJoin = () => {
                                 <button 
                                   className="btn btn-outline-primary btn-sm" 
                                   onClick={() => handleSessionClick(session.session_code)}
+                                  disabled={loadingSessionCode === session.session_code}
                                   title="Join session"
                                 >
-                                  <i className="fas fa-sign-in-alt me-1"></i> Join
+                                  {(loadingSessionCode === session.session_code && loadingAction === 'join') ? (
+                                    <>
+                                      <span className="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                                      Loading...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <i className="fas fa-sign-in-alt me-1"></i> Join
+                                    </>
+                                  )}
                                 </button>
                                 <button 
                                   className="btn btn-outline-danger btn-sm" 
                                   onClick={(e) => handleLeaveSession(e, session.session_code)}
+                                  disabled={loadingSessionCode === session.session_code}
                                   title="Leave session"
                                 >
-                                  <i className="fas fa-times me-1"></i> Leave
+                                  {(loadingSessionCode === session.session_code && loadingAction === 'leave') ? (
+                                    <>
+                                      <span className="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                                      Loading...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <i className="fas fa-times me-1"></i> Leave
+                                    </>
+                                  )}
                                 </button>
                               </div>
                             </td>
