@@ -6,6 +6,19 @@ const Scheduler = axios.create({
   withCredentials: true // Important for CORS with credentials
 });
 
+// Add this function before the axios interceptor
+const isTokenExpired = (token) => {
+  if (!token) return true;
+  
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.exp * 1000 < Date.now();
+  } catch (error) {
+    console.error('Error checking token expiration:', error);
+    return true;
+  }
+};
+
 // Add a request interceptor to include the JWT token
 Scheduler.interceptors.request.use(
   (config) => {
