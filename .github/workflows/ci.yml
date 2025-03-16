@@ -1,70 +1,49 @@
-name: CI/CD Pipeline
+name: CI/CD
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, master ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, master ]
 
 jobs:
-  client:
-    name: Client Tests & Build
+  test:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'  # Updated to a more compatible version
-      - name: Install Client Dependencies
-        run: |
-          cd client
-          npm install
-      - name: Run Client Tests
-        run: |
-          cd client
-          NODE_OPTIONS=--openssl-legacy-provider npm test -- --watchAll=false --passWithNoTests
-      - name: Build Client (Optional)
-        run: |
-          cd client
-          npm run build
-
-  server:
-    name: Server Tests
-    runs-on: ubuntu-latest
+    
     services:
-      postgres:  # Add PostgreSQL service for testing
-        image: postgres:13
-        env:
-          POSTGRES_USER: user
-          POSTGRES_PASSWORD: password
-          POSTGRES_DB: mydb
+      # Add any required services like database
+      mongodb:
+        image: mongo:4.4
         ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          - 27017:27017
+
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'  # Updated
-      - name: Install Server Dependencies
-        run: |
-          cd server
-          npm install
-      - name: Run Server Tests
-        run: |
-          cd server
-          npm test
-        env:  # Add environment variables for database connection
-          DB_USER: user
-          DB_HOST: localhost
-          DB_NAME: mydb
-          DB_PASSWORD: password
-          DB_PORT: 5432
+    - uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: |
+        npm ci
+        
+    - name: Set up environment variables
+      run: |
+        echo "NODE_ENV=test" >> $GITHUB_ENV
+        echo "TEST_DB_URI=mongodb://localhost:27017/test" >> $GITHUB_ENV
+        
+    - name: Build
+      run: npm run build --if-present
+      
+    - name: Run server tests
+      run: npm run test:server
+      env:
+        CI: true
+        
+    - name: Run client tests
+      run: npm run test:client
+      env:
+        CI: true
