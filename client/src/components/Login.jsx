@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { SessionContext } from '../context/SessionContext';
 import Header from './Header';
+import Footer from './Footer';
 
 const Login = () => {
   const [name, setName] = useState('');
@@ -9,6 +10,9 @@ const Login = () => {
   const [validationErrors, setValidationErrors] = useState({
     password: ''
   });
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetSent, setResetSent] = useState(false);
   const { loginUser, loading, error } = useContext(SessionContext);
   const navigate = useNavigate();
 
@@ -53,104 +57,142 @@ const Login = () => {
     }
   };
 
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    // Here you would typically call an API to send a password reset email
+    // For now, we'll just simulate a successful request
+    setResetSent(true);
+    // setTimeout to hide success message after 5 seconds
+    setTimeout(() => {
+      setResetSent(false);
+      setShowForgotPassword(false);
+    }, 5000);
+  };
+
   // Check if form is valid
   const isFormValid = name.trim() !== '' && password.length >= 6;
+  const isResetFormValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(resetEmail);
 
   return (
-    <div className="auth-page">
+    <div className="d-flex flex-column min-vh-100 bg-pattern">
       <Header />
       
-      <div className="container py-5">
+      <div className="home-container flex-grow-1 py-5">
         <div className="row justify-content-center">
           <div className="col-md-6 col-lg-5">
-            <div className="card auth-card shadow">
-              <div className="card-body p-4 p-md-5">
-                <h2 className="text-center mb-4 fw-bold">Welcome Back</h2>
-                
-                {error && (
-                  <div className="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i className="fas fa-exclamation-circle me-2"></i>
-                    {error}
-                    <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                  </div>
-                )}
-                
-                <form onSubmit={handleSubmit}>
-                  <div className="mb-4">
-                    <label htmlFor="loginName" className="form-label">Username</label>
-                    <div className="input-group">
-                      <span className="input-group-text">
-                        <i className="fas fa-user"></i>
-                      </span>
+            {!showForgotPassword ? (
+              <div className="card login-card">
+                <div className="card-body p-4 p-md-5">
+                  <h2 className="text-center mb-4">Login</h2>
+                  
+                  {error && <div className="alert alert-danger">{error}</div>}
+                  
+                  <form onSubmit={handleSubmit}>
+                    <div className="mb-3">
+                      <label htmlFor="loginName" className="form-label">Name</label>
                       <input
                         type="text"
                         className="form-control"
                         id="loginName"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        placeholder="Enter your username"
+                        placeholder="Enter your name"
                         required
                       />
                     </div>
-                  </div>
-                  
-                  <div className="mb-4">
-                    <div className="d-flex justify-content-between align-items-center">
+                    <div className="mb-3">
                       <label htmlFor="loginPassword" className="form-label">Password</label>
-                      <a href="#" className="small text-decoration-none">Forgot Password?</a>
-                    </div>
-                    <div className="input-group">
-                      <span className="input-group-text">
-                        <i className="fas fa-lock"></i>
-                      </span>
                       <input
                         type="password"
                         className={`form-control ${validationErrors.password ? 'is-invalid' : ''}`}
                         id="loginPassword"
                         value={password}
                         onChange={handlePasswordChange}
-                        placeholder="Enter your password"
+                        placeholder="Enter your password (min. 6 characters)"
                         required
                       />
                       {validationErrors.password && (
-                        <div className="invalid-feedback">
-                          {validationErrors.password}
-                        </div>
+                        <div className="invalid-feedback">{validationErrors.password}</div>
                       )}
                     </div>
-                  </div>
+                    <div className="d-flex justify-content-end mb-3">
+                      <button 
+                        type="button" 
+                        className="btn btn-link text-decoration-none p-0"
+                        onClick={() => setShowForgotPassword(true)}
+                      >
+                        Forgot Password?
+                      </button>
+                    </div>
+                    <div className="d-grid mt-4">
+                      <button 
+                        type="submit" 
+                        className="btn btn-primary" 
+                        disabled={loading || !isFormValid}
+                      >
+                        {loading ? 'Logging in...' : 'Login'}
+                      </button>
+                    </div>
+                  </form>
                   
-                  <div className="d-grid mb-4">
-                    <button 
-                      type="submit" 
-                      className="btn btn-primary btn-lg" 
-                      disabled={!isFormValid || loading}
-                    >
-                      {loading ? (
-                        <>
-                          <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                          Logging in...
-                        </>
-                      ) : (
-                        <>
-                          <i className="fas fa-sign-in-alt me-2"></i>
-                          Login
-                        </>
-                      )}
-                    </button>
+                  <div className="text-center mt-4">
+                    <p className="mb-0">Don't have an account? <Link to="/register">Register here</Link></p>
                   </div>
-                  
-                  <div className="text-center">
-                    <p className="mb-0">
-                      Don't have an account? <Link to="/register" className="text-decoration-none">Register here</Link>
-                    </p>
-                  </div>
-                </form>
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="card login-card">
+                <div className="card-body p-4 p-md-5">
+                  <h2 className="text-center mb-4">Reset Password</h2>
+                  
+                  {resetSent && (
+                    <div className="alert alert-success">
+                      Password reset link has been sent to your email.
+                    </div>
+                  )}
+                  
+                  <p className="text-center text-muted mb-4">
+                    Enter your email address and we'll send you a link to reset your password.
+                  </p>
+                  
+                  <form onSubmit={handleForgotPassword}>
+                    <div className="mb-3">
+                      <label htmlFor="resetEmail" className="form-label">Email Address</label>
+                      <input
+                        type="email"
+                        className="form-control"
+                        id="resetEmail"
+                        value={resetEmail}
+                        onChange={(e) => setResetEmail(e.target.value)}
+                        placeholder="Enter your email"
+                        required
+                      />
+                    </div>
+                    <div className="d-grid gap-2">
+                      <button 
+                        type="submit" 
+                        className="btn btn-primary" 
+                        disabled={!isResetFormValid}
+                      >
+                        Send Reset Link
+                      </button>
+                      <button 
+                        type="button" 
+                        className="btn btn-outline-secondary" 
+                        onClick={() => setShowForgotPassword(false)}
+                      >
+                        Back to Login
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
+      
+      <Footer />
     </div>
   );
 };

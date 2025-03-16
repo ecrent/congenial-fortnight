@@ -1,10 +1,11 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { SessionContext } from '../context/SessionContext';
 import { useNavigate, Link } from 'react-router-dom';
 
 const Header = () => {
   const { user, clearSession } = useContext(SessionContext);
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = () => {
     clearSession();
@@ -12,41 +13,75 @@ const Header = () => {
   };
 
   return (
-    <header role="banner" className="navbar navbar-expand-lg navbar-light bg-white py-3 shadow-sm">
-      <div className="container">
-        <Link to="/" className="navbar-brand d-flex align-items-center">
-          <i className="fas fa-calendar-check me-2 text-primary"></i>
-          <span className="fw-bold">Meeting Time Finder</span>
-        </Link>
-        
-        <div className="ms-auto">
-          {user ? (
-            <div className="d-flex align-items-center">
-              <span className="me-3 text-secondary">
-                <i className="fas fa-user-circle me-1"></i>
-                {user.name}
-              </span>
-              
-              {user.role === 'admin' && (
-                <Link to="/admin" className="btn btn-outline-primary me-2">
-                  <i className="fas fa-cog me-1"></i>
-                  Admin
-                </Link>
+    <header role="banner" className="navbar-header bg-pattern">
+      <nav className="navbar navbar-expand-lg">
+        <div className="home-container">
+          <div className="d-flex justify-content-between align-items-center">
+            {/* Logo positioned on the left with adjusted padding */}
+            <Link to="/" className="navbar-brand d-flex align-items-center">
+              <div className="logo-container me-2">
+                <i className="fas fa-calendar-check logo-icon"></i>
+              </div>
+              <div className="logo-text">
+                <span className="logo-title">Meeting Time Finder</span>
+                <span className="logo-tagline d-none d-sm-inline">Schedule Smarter</span>
+              </div>
+            </Link>
+            
+            {/* Mobile toggle button */}
+            <button 
+              className="navbar-toggler" 
+              type="button"
+              onClick={() => setMenuOpen(!menuOpen)}
+              aria-label="Toggle navigation"
+            >
+              <i className="fas fa-bars"></i>
+            </button>
+          </div>
+          
+          {/* Navigation links */}
+          <div className={`collapse navbar-collapse mt-3 mt-lg-0 ${menuOpen ? 'show' : ''}`}>
+            <ul className="navbar-nav ms-auto mb-0 align-items-center">
+              {!user && (
+                <>
+                  <li className="nav-item">
+                    <Link to="/login" className="btn btn-primary me-2">Sign In</Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link to="/register" className="btn btn-warning">Get Started</Link>
+                  </li>
+                </>
               )}
               
-              <button className="btn btn-outline-secondary" onClick={handleLogout}>
-                <i className="fas fa-sign-out-alt me-1"></i>
-                Logout
-              </button>
-            </div>
-          ) : (
-            <div>
-              <Link to="/login" className="btn btn-outline-primary me-2">Login</Link>
-              <Link to="/register" className="btn btn-primary">Register</Link>
-            </div>
-          )}
+              {user && (
+                <>
+                  <li className="nav-item">
+                    <span className="nav-link user-welcome">
+                      <i className="fas fa-user-circle me-1"></i> 
+                      {user.name}
+                    </span>
+                  </li>
+                  {user.role === 'admin' && (
+                    <li className="nav-item mx-lg-2">
+                      <Link to="/admin" className="btn btn-outline-primary btn-sm rounded-pill">
+                        <i className="fas fa-cog me-1"></i> Admin
+                      </Link>
+                    </li>
+                  )}
+                  <li className="nav-item">
+                    <button 
+                      className="btn btn-secondary btn-sm rounded-pill" 
+                      onClick={handleLogout}
+                    >
+                      <i className="fas fa-sign-out-alt me-1"></i> Logout
+                    </button>
+                  </li>
+                </>
+              )}
+            </ul>
+          </div>
         </div>
-      </div>
+      </nav>
     </header>
   );
 };
