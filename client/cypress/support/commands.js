@@ -1,50 +1,28 @@
-// Custom command to fill out the registration form
-Cypress.Commands.add('fillRegistrationForm', (user) => {
-  // Fill out the form based on what we know about the component
-  if (user.name) {
-    cy.get('form input').first().clear().type(user.name);
-  }
-  
-  if (user.email) {
-    cy.get('form input').eq(1).clear().type(user.email);
-  }
-  
-  if (user.password) {
-    cy.get('form input[type="password"], form input').eq(2).clear().type(user.password);
-  }
-});
+// Custom commands for Cypress tests
 
-// Custom command to log in
-Cypress.Commands.add('login', (name, password) => {
+// Login command for reuse
+Cypress.Commands.add('login', (username, password) => {
   cy.visit('/login');
-  
-  // Use input order since we now know the form structure
-  cy.get('form input').first().clear().type(name);
-  cy.get('form input[type="password"]').clear().type(password);
-  
-  // Submit button - using specific selector
-  cy.get('button[type="submit"].btn.btn-primary').click();
+  cy.get('#loginName').type(username || 'testuser');
+  cy.get('#loginPassword').type(password || 'password123');
+  cy.get('button[type="submit"]').click();
 });
 
-// Custom command to create and join a session
-Cypress.Commands.add('createAndJoinSession', (sessionName) => {
-  cy.intercept('POST', '**/api/v1/sessions', {
-    statusCode: 200,
-    body: {
-      status: 'success',
-      data: {
-        session: { name: sessionName, code: 'TEST123' }
-      }
-    }
-  }).as('createSessionRequest');
-  
+// Admin login command
+Cypress.Commands.add('adminLogin', () => {
+  cy.login('admin', 'adminpassword');
+});
+
+// Create a new session
+Cypress.Commands.add('createSession', () => {
   cy.visit('/join');
-  cy.get('input').first().clear().type(sessionName);
-  cy.contains('button', 'Create').click();
-  
-  // Wait for the intercepted request
-  cy.wait('@createSessionRequest');
-  
-  // Verify successful session creation
-  cy.contains(sessionName).should('be.visible');
+  cy.get('.btn-success').contains('Create New Session').click();
+});
+
+// Add availability
+Cypress.Commands.add('addAvailability', (day, startTime, endTime) => {
+  cy.get('#day_of_week').select(day || 'Monday');
+  cy.get('#start_time').type(startTime || '09:00');
+  cy.get('#end_time').type(endTime || '17:00');
+  cy.get('button').contains('Add Availability').click();
 });

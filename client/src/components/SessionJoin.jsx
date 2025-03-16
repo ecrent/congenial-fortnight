@@ -89,127 +89,199 @@ const SessionJoin = () => {
     }
   };
 
-  return (
-    <div>
-      <Header />
-      <div className="card p-4 my-4">
-        <h2 className="text-center mb-4">Join or Create a Session</h2>
-        
-        {error && <div className="alert alert-danger">{error}</div>}
-        
-        <div className="row mb-4">
-          <div className="col-md-6">
-            <div className="card h-100">
-              <div className="card-header bg-primary text-white">
-                <h5 className="card-title mb-0 text-center">Join Existing Session</h5>
-              </div>
-              <div className="card-body d-flex flex-column">
-                <form onSubmit={handleJoin} className="mb-3 flex-grow-1">
-                  <div className="mb-3">
-                    <label htmlFor="sessionCode" className="form-label">Session Code</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      id="sessionCode"
-                      value={sessionCode}
-                      onChange={(e) => setSessionCode(e.target.value.toUpperCase())}
-                      placeholder="Enter 8-character code"
-                      maxLength="8"
-                      required
-                    />
-                  </div>
-                  <div className="d-grid mt-auto">
-                    <div></div> {/* Spacer */}
-                    <button 
-                      type="submit" 
-                      className="btn btn-primary" 
-                      disabled={loading || !sessionCode.trim()}
-                    >
-                      {loading ? 'Joining...' : 'Join Session'}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
+  if (initialLoading) {
+    return (
+      <div className="page-container d-flex align-items-center justify-content-center">
+        <div className="text-center">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
           </div>
-          
-          <div className="col-md-6">
-            <div className="card h-100">
-              <div className="card-header bg-success text-white">
-                <h5 className="card-title mb-0 text-center">Create New Session</h5>
+          <p className="mt-3">Loading your sessions...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <Header />
+      
+      <div className="page-container">
+        <div className="container">
+          <div className="content-card p-4 p-md-5">
+            <h2 className="text-center mb-4 fw-bold">Join or Create a Session</h2>
+            
+            {error && (
+              <div className="alert alert-danger alert-dismissible fade show" role="alert">
+                <i className="fas fa-exclamation-circle me-2"></i>
+                {error}
+                <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
               </div>
-              <div className="card-body d-flex flex-column">
-                <p className="text-muted mb-4 flex-grow-1">
-                  Start a new session and invite others to join using your unique code.
-                </p>
-                <div className="d-grid mt-auto">
-                  <button 
-                    onClick={handleCreate} 
-                    className="btn btn-success" 
-                    disabled={loading}
-                  >
-                    {loading ? 'Creating...' : 'Create New Session'}
-                  </button>
+            )}
+            
+            <div className="row g-4 mb-5">
+              <div className="col-md-6">
+                <div className="session-option p-4">
+                  <h5 className="mb-3"><i className="fas fa-sign-in-alt me-2 text-primary"></i>Join Existing Session</h5>
+                  <form onSubmit={handleJoin}>
+                    <div className="mb-3">
+                      <label htmlFor="sessionCode" className="form-label">Session Code</label>
+                      <div className="input-group">
+                        <span className="input-group-text">
+                          <i className="fas fa-hashtag"></i>
+                        </span>
+                        <input
+                          type="text"
+                          className="form-control"
+                          id="sessionCode"
+                          value={sessionCode}
+                          onChange={(e) => setSessionCode(e.target.value.toUpperCase())}
+                          placeholder="Enter 8-character code"
+                          maxLength="8"
+                          required
+                        />
+                      </div>
+                      <small className="text-muted mt-2 d-block">
+                        Enter the 8-character code provided by the session creator
+                      </small>
+                    </div>
+                    <div style={{ marginTop: '4.5rem' }}>
+                      <div className="d-grid">
+                        <button 
+                          type="submit" 
+                          className="btn btn-primary btn-lg" 
+                          disabled={loading || !sessionCode.trim()}
+                        >
+                          {loading ? (
+                            <>
+                              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                              Joining...
+                            </>
+                          ) : (
+                            <>
+                              <i className="fas fa-sign-in-alt me-2"></i>
+                              Join Session
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              </div>
+              
+              <div className="col-md-6">
+                <div className="session-option p-4">
+                  <h5 className="mb-3"><i className="fas fa-plus-circle me-2 text-accent"></i>Create New Session</h5>
+                  <p className="text-muted mb-4">
+                    Start a new planning session and invite your team members to join using your unique session code.
+                  </p>
+                  <div style={{ marginTop: '6rem' }}>
+                    <div className="d-grid">
+                      <button 
+                        onClick={handleCreate} 
+                        className="btn btn-accent btn-lg" 
+                        disabled={loading}
+                      >
+                        {loading ? (
+                          <>
+                            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            Creating...
+                          </>
+                        ) : (
+                          <>
+                            <i className="fas fa-plus-circle me-2"></i>
+                            Create New Session
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
+
+            {/* Display user's active sessions with improved styling */}
+            <div className="active-sessions mt-5">
+              <div className="section-header p-3 rounded">
+                <h3 className="mb-0 text-center session-header-text">Your Active Sessions</h3>
+              </div>
+              
+              <div className="p-4">
+                {loadingSessions ? (
+                  <div className="text-center my-4">
+                    <div className="spinner-border text-primary" role="status">
+                      <span className="visually-hidden">Loading...</span>
+                    </div>
+                    <p className="mt-2">Loading your sessions...</p>
+                  </div>
+                ) : userSessions.length > 0 ? (
+                  <div className="table-responsive">
+                    <table className="table table-hover">
+                      <thead className="table-light">
+                        <tr>
+                          <th>Session Code</th>
+                          <th>Participants</th>
+                          <th className="text-center">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {userSessions.map(session => (
+                          <tr key={session.session_code} className="session-row">
+                            <td 
+                              onClick={() => handleSessionClick(session.session_code)}
+                              className="fw-bold session-code"
+                            >
+                              <i className="fas fa-calendar-alt me-2 text-primary"></i>
+                              {session.session_code}
+                            </td>
+                            <td onClick={() => handleSessionClick(session.session_code)}>
+                              <div className="participant-list">
+                                {session.user_names.map((name, index) => (
+                                  <span key={index} className="participant-badge">
+                                    {name}
+                                  </span>
+                                ))}
+                              </div>
+                            </td>
+                            <td className="text-center">
+                              <div className="btn-group">
+                                <button 
+                                  className="btn btn-outline-primary btn-sm" 
+                                  onClick={() => handleSessionClick(session.session_code)}
+                                  title="Join session"
+                                >
+                                  <i className="fas fa-sign-in-alt me-1"></i> Join
+                                </button>
+                                <button 
+                                  className="btn btn-outline-danger btn-sm" 
+                                  onClick={(e) => handleLeaveSession(e, session.session_code)}
+                                  title="Leave session"
+                                >
+                                  <i className="fas fa-times me-1"></i> Leave
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="empty-state text-center p-4">
+                    <div className="empty-state-icon mb-3">
+                      <i className="fas fa-calendar-day fa-4x text-secondary opacity-50"></i>
+                    </div>
+                    <h4>No Active Sessions</h4>
+                    <p className="text-muted mb-4">You haven't joined any sessions yet. Create a new one or join with a session code.</p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
-
-        {/* Display user's active sessions in table format */}
-        <div className="mt-4">
-          <h4 className="mb-3">Your Active Sessions</h4>
-          {loadingSessions ? (
-            <div className="text-center my-3">
-              <div className="spinner-border text-primary" role="status">
-                <span className="visually-hidden">Loading...</span>
-              </div>
-              <p className="mt-2">Loading your sessions...</p>
-            </div>
-          ) : userSessions.length > 0 ? (
-            <div className="table-responsive">
-              <table className="table table-hover">
-                <thead className="table-light">
-                  <tr>
-                    <th>Session Code</th>
-                    <th>Participants</th>
-                    <th className="text-center">Leave Session</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {userSessions.map(session => (
-                    <tr key={session.session_code} style={{ cursor: 'pointer' }}>
-                      <td 
-                        onClick={() => handleSessionClick(session.session_code)}
-                        className="fw-bold"
-                      >
-                        {session.session_code}
-                      </td>
-                      <td onClick={() => handleSessionClick(session.session_code)}>
-                        {session.user_names.join(', ')}
-                      </td>
-                      <td className="text-center">
-                        <button 
-                          className="btn btn-sm btn-danger" 
-                          onClick={(e) => handleLeaveSession(e, session.session_code)}
-                          title="Leave session"
-                        >
-                          <i className="fas fa-times"></i> Leave
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <div className="alert alert-info">
-              You don't have any active sessions. Join an existing one or create a new session.
-            </div>
-          )}
-        </div>
       </div>
-    </div>
+    </>
   );
 };
 
