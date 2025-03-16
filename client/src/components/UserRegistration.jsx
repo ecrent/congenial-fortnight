@@ -1,7 +1,8 @@
 import React, { useState, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { SessionContext } from '../context/SessionContext';
 import Header from '../components/Header';
+import Footer from '../components/Footer';
 
 const UserRegistration = () => {
   const { registerUser, loading, error: apiError } = useContext(SessionContext);
@@ -29,147 +30,164 @@ const UserRegistration = () => {
           errors.name = '';
         }
         break;
-        
       case 'email':
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(value)) {
           errors.email = 'Please enter a valid email address';
         } else {
           errors.email = '';
         }
         break;
-        
       case 'password':
         if (value.length < 6) {
           errors.password = 'Password must be at least 6 characters long';
+        } else if (!/(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]/.test(value)) {
+          errors.password = 'Password must include letters, numbers, and special characters';
         } else {
           errors.password = '';
         }
         break;
-        
       default:
         break;
     }
     
     setValidationErrors(errors);
-    return !errors[field]; // Return true if field is valid
   };
 
   const handleInputChange = (e) => {
-    const { id, value } = e.target;
+    const { name, value } = e.target;
     
-    // Update state based on input id
-    switch(id) {
-      case 'userName':
+    // Update state based on input name
+    switch (name) {
+      case 'name':
         setName(value);
-        validateField('name', value);
         break;
-      case 'userEmail':
+      case 'email':
         setEmail(value);
-        validateField('email', value);
         break;
-      case 'userPassword':
+      case 'password':
         setPassword(value);
-        validateField('password', value);
         break;
       default:
         break;
     }
+    
+    // Validate field
+    validateField(name, value);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validate all fields before submission
-    const isNameValid = validateField('name', name);
-    const isEmailValid = validateField('email', email);
-    const isPasswordValid = validateField('password', password);
+    // Final validation before submission
+    validateField('name', name);
+    validateField('email', email);
+    validateField('password', password);
     
-    // Only proceed if all validations pass
-    if (isNameValid && isEmailValid && isPasswordValid) {
-      const newUser = await registerUser(name, email, password);
-      if (newUser) {
-        navigate('/join');
-      }
+    // Check if there are any validation errors
+    if (validationErrors.name || validationErrors.email || validationErrors.password) {
+      return;
+    }
+    
+    const user = await registerUser(name, email, password);
+    if (user) {
+      navigate('/join');
     }
   };
 
   // Check if form is valid
   const isFormValid = 
-    name.trim() !== '' && 
-    email.trim() !== '' && 
-    password.trim() !== '' &&
-    !validationErrors.name &&
-    !validationErrors.email &&
-    !validationErrors.password;
+    name.trim().length >= 3 && 
+    /^[a-zA-Z0-9_-]{3,30}$/.test(name) && 
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && 
+    password.length >= 6;
 
   return (
-    <div>
+    <div className="d-flex flex-column min-vh-100 bg-pattern">
       <Header />
-      <div className="card p-4 my-4 mx-auto" style={{ maxWidth: '500px' }}>
-        <h2 className="text-center mb-4">Register Your Account</h2>
-        
-        {apiError && <div className="alert alert-danger">{apiError}</div>}
-        
-        <form onSubmit={handleSubmit}>
-          <div className="mb-3">
-            <label htmlFor="userName" className="form-label">Your Name</label>
-            <input
-              type="text"
-              className={`form-control ${validationErrors.name ? 'is-invalid' : name ? 'is-valid' : ''}`}
-              id="userName"
-              value={name}
-              onChange={handleInputChange}
-              placeholder="Enter your name"
-              required
-            />
-            {validationErrors.name && (
-              <div className="invalid-feedback">{validationErrors.name}</div>
-            )}
+      
+      <div className="home-container flex-grow-1 py-5">
+        <div className="row justify-content-center">
+          <div className="col-md-6 col-lg-5">
+            <div className="card register-card">
+              <div className="card-body p-4 p-md-5">
+                <h2 className="text-center mb-4">Register Your Account</h2>
+                
+                {apiError && <div className="alert alert-danger">{apiError}</div>}
+                
+                <form onSubmit={handleSubmit}>
+                  <div className="mb-3">
+                    <label htmlFor="userName" className="form-label">Your Name</label>
+                    <input
+                      type="text"
+                      className={`form-control ${validationErrors.name ? 'is-invalid' : name ? 'is-valid' : ''}`}
+                      id="userName"
+                      name="name"
+                      value={name}
+                      onChange={handleInputChange}
+                      placeholder="Enter your name"
+                      required
+                    />
+                    {validationErrors.name && (
+                      <div className="invalid-feedback">{validationErrors.name}</div>
+                    )}
+                  </div>
+                  
+                  <div className="mb-3">
+                    <label htmlFor="userEmail" className="form-label">Email Address</label>
+                    <input
+                      type="email"
+                      className={`form-control ${validationErrors.email ? 'is-invalid' : email ? 'is-valid' : ''}`}
+                      id="userEmail"
+                      name="email"
+                      value={email}
+                      onChange={handleInputChange}
+                      placeholder="Enter your email"
+                      required
+                    />
+                    {validationErrors.email && (
+                      <div className="invalid-feedback">{validationErrors.email}</div>
+                    )}
+                  </div>
+                  
+                  <div className="mb-3">
+                    <label htmlFor="userPassword" className="form-label">Password</label>
+                    <input
+                      type="password"
+                      className={`form-control ${validationErrors.password ? 'is-invalid' : password ? 'is-valid' : ''}`}
+                      id="userPassword"
+                      name="password"
+                      value={password}
+                      onChange={handleInputChange}
+                      placeholder="Create a password (min. 6 characters)"
+                      required
+                    />
+                    {validationErrors.password && (
+                      <div className="invalid-feedback">{validationErrors.password}</div>
+                    )}
+                  </div>
+                  
+                  <div className="d-grid mt-4">
+                    <button 
+                      type="submit" 
+                      className="btn btn-primary" 
+                      disabled={loading || !isFormValid}
+                    >
+                      {loading ? 'Registering...' : 'Continue'}
+                    </button>
+                  </div>
+                </form>
+                
+                <div className="text-center mt-4">
+                  <p className="mb-0">Already have an account? <Link to="/login">Login here</Link></p>
+                </div>
+              </div>
+            </div>
           </div>
-          
-          <div className="mb-3">
-            <label htmlFor="userEmail" className="form-label">Email Address</label>
-            <input
-              type="email"
-              className={`form-control ${validationErrors.email ? 'is-invalid' : email ? 'is-valid' : ''}`}
-              id="userEmail"
-              value={email}
-              onChange={handleInputChange}
-              placeholder="Enter your email"
-              required
-            />
-            {validationErrors.email && (
-              <div className="invalid-feedback">{validationErrors.email}</div>
-            )}
-          </div>
-          
-          <div className="mb-3">
-            <label htmlFor="userPassword" className="form-label">Password</label>
-            <input
-              type="password"
-              className={`form-control ${validationErrors.password ? 'is-invalid' : password ? 'is-valid' : ''}`}
-              id="userPassword"
-              value={password}
-              onChange={handleInputChange}
-              placeholder="Enter your password (min. 6 characters)"
-              required
-            />
-            {validationErrors.password && (
-              <div className="invalid-feedback">{validationErrors.password}</div>
-            )}
-          </div>
-          
-          <div className="d-grid">
-            <button 
-              type="submit" 
-              className="btn btn-primary" 
-              disabled={loading || !isFormValid}
-            >
-              {loading ? 'Registering...' : 'Continue'}
-            </button>
-          </div>
-        </form>
+        </div>
       </div>
+      
+      <Footer />
     </div>
   );
 };
