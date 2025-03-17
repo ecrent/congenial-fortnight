@@ -62,6 +62,6 @@ jobs:
         CI: true
         
     - name: Run client tests
-      run: npm run test:client
+      run: npm run cypress:run
       env:
         CI: true
