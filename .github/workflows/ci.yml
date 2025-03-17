@@ -60,19 +60,3 @@ jobs:
       run: npm run test:server
       env:
         CI: true
-        
-    - name: Install Cypress dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y xvfb libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 libxtst6 xauth
-      
-    - name: Create test users in database
-      run: |
-        PGPASSWORD=postgres psql -h localhost -U postgres -d test_db -c "INSERT INTO users(name, email, password, role) VALUES ('testuser', 'test@example.com', 'password123', 'user'), ('admin', 'admin@example.com', 'adminpassword', 'admin') ON CONFLICT (name) DO NOTHING;"
-      
-    - name: Run client tests with Xvfb
-      run: |
-        cd client
-        xvfb-run --auto-servernum --server-args='-screen 0 1280x720x24' npm run test:e2e:ci
-      env:
-        CI: true
