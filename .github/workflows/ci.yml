@@ -11,11 +11,21 @@ jobs:
     runs-on: ubuntu-latest
     
     services:
-      # Add any required services like database
-      mongodb:
-        image: mongo:4.4
+      # PostgreSQL service instead of MongoDB
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
         ports:
-          - 27017:27017
+          - 5432:5432
+        # Health check to ensure service is ready
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
     - uses: actions/checkout@v3
@@ -33,7 +43,15 @@ jobs:
     - name: Set up environment variables
       run: |
         echo "NODE_ENV=test" >> $GITHUB_ENV
-        echo "TEST_DB_URI=mongodb://localhost:27017/test" >> $GITHUB_ENV
+        echo "DB_HOST=localhost" >> $GITHUB_ENV
+        echo "DB_PORT=5432" >> $GITHUB_ENV
+        echo "DB_USER=postgres" >> $GITHUB_ENV
+        echo "DB_PASSWORD=postgres" >> $GITHUB_ENV
+        echo "DB_NAME=test_db" >> $GITHUB_ENV
+        
+    - name: Initialize database schema
+      run: |
+        PGPASSWORD=postgres psql -h localhost -U postgres -d test_db -f server/db/test_schema.sql
         
     - name: Build
       run: npm run build --if-present
