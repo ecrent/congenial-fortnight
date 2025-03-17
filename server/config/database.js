@@ -1,6 +1,13 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
+// Load test environment variables if in test mode
+if (process.env.NODE_ENV === 'test') {
+  require('dotenv').config({ path: './.env.test' });
+  console.log('Running in test environment');
+  console.log(`DB Connection: ${process.env.DB_HOST}:${process.env.DB_PORT}`);
+}
+
 // Default query timeout in milliseconds (5 seconds)
 const DEFAULT_QUERY_TIMEOUT = parseInt(process.env.DB_QUERY_TIMEOUT || 5000);
 
@@ -10,11 +17,20 @@ const pool = new Pool({
   host: process.env.DB_HOST,
   database: process.env.DB_NAME,
   password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT || 5432,
+  port: parseInt(process.env.DB_PORT || 5432),
   // Connection pool limits to prevent resource exhaustion
   max: 20,                          // Maximum number of clients in the pool
   idleTimeoutMillis: 30000,         // Close idle clients after 30 seconds
   connectionTimeoutMillis: 10000,   // Return error after 10 seconds if connection not established
+});
+
+// Log connection status
+pool.on('connect', () => {
+  console.log(`Connected to PostgreSQL database at ${process.env.DB_HOST}:${process.env.DB_PORT}`);
+});
+
+pool.on('error', (err) => {
+  console.error('PostgreSQL pool error:', err);
 });
 
 /**
