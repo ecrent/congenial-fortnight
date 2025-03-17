@@ -15,10 +15,10 @@ const Footer = () => {
               Our scheduling tool helps teams coordinate across time zones and busy calendars.
             </p>
             <div className="social-links mt-3">
-              <a href="#" className="text-decoration-none me-3" aria-label="Facebook">
+              <a href="https://facebook.com/meetingtimefinder" className="text-decoration-none me-3" aria-label="Facebook">
                 <i className="fab fa-facebook"></i>
               </a>
-              <a href="#" className="text-decoration-none me-3" aria-label="LinkedIn">
+              <a href="https://linkedin.com/company/meetingtimefinder" className="text-decoration-none me-3" aria-label="LinkedIn">
                 <i className="fab fa-linkedin"></i>
               </a>
             </div>

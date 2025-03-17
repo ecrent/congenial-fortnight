@@ -17,11 +17,12 @@ const SessionJoin = () => {
     joinSession, 
     leaveSession,
     getUserSessions,
-    loading, 
     error, 
     user,
     initialLoading
   } = useContext(SessionContext);
+  // Removed unused 'loading' variable from context destructuring
+  
   const navigate = useNavigate();
 
   // Restrict access: Only a registered user may access /join

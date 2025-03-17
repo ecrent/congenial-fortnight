@@ -105,33 +105,10 @@ const ScheduleInput = () => {
       return false;
     }
     
-    // Convert times to minutes since midnight for easier comparison
-    const convertToMinutes = (timeString) => {
-      const [hours, minutes] = timeString.split(':').map(Number);
-      return hours * 60 + minutes;
-    };
-    
-    const slot1Start = convertToMinutes(slot1.start_time);
-    const slot1End = convertToMinutes(slot1.end_time);
-    const slot2Start = convertToMinutes(slot2.start_time);
-    const slot2End = convertToMinutes(slot2.end_time);
-    
-    // Check if the slots overlap
-    return (
-      (slot1Start < slot2End && slot1End > slot2Start) || 
-      (slot2Start < slot1End && slot2End > slot1Start)
-    );
+    // Check for overlap
+    return !(slot1.end_time <= slot2.start_time || slot1.start_time >= slot2.end_time);
   };
-  
-  // Helper function to suggest a non-overlapping time
-  const suggestNonOverlappingTime = (newSlot, existingSlot) => {
-    // Suggest starting from the end of the existing slot
-    return {
-      start_time: existingSlot.end_time,
-      end_time: newSlot.end_time
-    };
-  };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!user) return;
