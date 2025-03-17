@@ -1,10 +1,15 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { SessionContext } from '../context/SessionContext';
 import Header from './Header';
 import Footer from './Footer';
 
 const Login = () => {
+  // Add useEffect to scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+  
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [validationErrors, setValidationErrors] = useState({

@@ -1,10 +1,15 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { SessionContext } from '../context/SessionContext';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 
 const UserRegistration = () => {
+  // Add useEffect to scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+  
   const { registerUser, loading, error: apiError } = useContext(SessionContext);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
