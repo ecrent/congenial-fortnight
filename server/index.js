@@ -19,7 +19,8 @@ const { apiLimiter, authLimiter } = require('./middleware/rateLimiter');
 // List of allowed origins
 const allowedOrigins = [
   'https://bug-free-space-waffle-r9v99g7q49jc5wj7-3001.app.github.dev',
-  'https://bug-free-space-waffle-r9v99g7q49jc5wj7-3000.app.github.dev'
+  'https://bug-free-space-waffle-r9v99g7q49jc5wj7-3000.app.github.dev',
+  'https://production.d30jdlodeo6t5m.amplifyapp.com'  // Add your production URL
 ];
 
 // Use the cors middleware properly instead of manual implementation
