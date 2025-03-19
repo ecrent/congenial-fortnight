@@ -1,10 +1,11 @@
 module.exports = {
   apps: [{
     name: 'free-time-finder',
-    script: 'index.js',
+    script: 'npm',
+    args: 'start',
     env: {
-      NODE_ENV: 'development',
-      ENV_VAR1: 'value'
+      NODE_ENV: 'production',
+      PORT: 80
     }
   }],
 }

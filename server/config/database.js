@@ -11,18 +11,35 @@ if (process.env.NODE_ENV === 'test') {
 // Default query timeout in milliseconds (5 seconds)
 const DEFAULT_QUERY_TIMEOUT = parseInt(process.env.DB_QUERY_TIMEOUT || 5000);
 
-// Create a connection pool to the PostgreSQL database with proper limits
-const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
-  port: parseInt(process.env.DB_PORT || 5432),
-  // Connection pool limits to prevent resource exhaustion
-  max: 20,                          // Maximum number of clients in the pool
-  idleTimeoutMillis: 30000,         // Close idle clients after 30 seconds
-  connectionTimeoutMillis: 10000,   // Return error after 10 seconds if connection not established
-});
+// Create a connection pool to the PostgreSQL database
+let poolConfig;
+
+// In production, use the DATABASE_URL connection string
+if (process.env.NODE_ENV === 'production' && process.env.DATABASE_URL) {
+  poolConfig = {
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+      rejectUnauthorized: false // Required for some hosted services (e.g., AWS RDS)
+    }
+  };
+  console.log('Using production database connection string');
+} else {
+  // For development or when individual parameters are provided
+  poolConfig = {
+    user: process.env.DB_USER,
+    host: process.env.DB_HOST,
+    database: process.env.DB_NAME,
+    password: process.env.DB_PASSWORD,
+    port: parseInt(process.env.DB_PORT || 5432),
+  };
+}
+
+// Add connection pool settings regardless of connection method
+poolConfig.max = parseInt(process.env.DB_POOL_MAX || 20);
+poolConfig.idleTimeoutMillis = parseInt(process.env.DB_POOL_IDLE_TIMEOUT || 30000);
+poolConfig.connectionTimeoutMillis = parseInt(process.env.DB_CONNECTION_TIMEOUT || 10000);
+
+const pool = new Pool(poolConfig);
 
 // Log connection status
 pool.on('connect', () => {

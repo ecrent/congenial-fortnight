@@ -14,8 +14,18 @@ client/build
 
 # misc
 client/.env
+client/.env.production
 server/.env
+server/.env.production
 
 client/npm-debug.log*
 client/yarn-debug.log*
 client/yarn-error.log*
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env.*
