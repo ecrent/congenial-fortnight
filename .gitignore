@@ -17,6 +17,7 @@ client/.env
 client/.env.production
 server/.env
 server/.env.production
+server/ec2-key.pem
 
 client/npm-debug.log*
 client/yarn-debug.log*
