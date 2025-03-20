@@ -9,6 +9,7 @@ const userRoutes = require('./routes/users');
 const scheduleRoutes = require('./routes/schedules');
 const optimalTimesRoutes = require('./routes/optimalTimes'); 
 const adminRoutes = require('./routes/admin');
+const debugRoutes = require('./routes/debug'); // Import debug routes
 
 const { apiLimiter, authLimiter } = require('./middleware/rateLimiter');
 
@@ -18,7 +19,7 @@ app.use(express.json());
 const allowedOrigins = [
   'https://5p91cl5dx1.execute-api.eu-central-1.amazonaws.com',
   'https://production.d30jdlodeo6t5m.amplifyapp.com',
-  'http://3.127.211.138',
+  'http://3.66.236.66',
   'http://localhost:3001'
 ];
 
@@ -72,6 +73,7 @@ app.use('/api/v1', userRoutes);
 app.use('/api/v1', scheduleRoutes);
 app.use('/api/v1', optimalTimesRoutes);
 app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/debug', debugRoutes); // Mount debug routes
 
 // 404 handler for undefined routes
 app.use((req, res) => {
