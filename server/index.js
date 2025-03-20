@@ -17,7 +17,7 @@ app.use(express.json());
 
 // List of allowed origins - making this more permissive for troubleshooting
 const allowedOrigins = [
-  'https://5p91cl5dx1.execute-api.eu-central-1.amazonaws.com',
+  'https://pvzboeiejb.execute-api.eu-central-1.amazonaws.com/',
   'https://production.d30jdlodeo6t5m.amplifyapp.com',
   'http://3.66.236.66',
   'http://localhost:3001'
