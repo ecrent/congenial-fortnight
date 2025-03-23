@@ -1,3 +1,6 @@
-# https://www.robotstxt.org/robotstxt.html
+# Allow all web crawlers
 User-agent: *
-Disallow:
+Allow: /
+
+# Sitemap location
+Sitemap: https://www.freetimefinder.click/sitemap.xml

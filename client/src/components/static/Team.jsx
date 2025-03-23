@@ -28,7 +28,7 @@ const Team = () => {
     {
       name: 'Taylor Williams',
       role: 'Head of Customer Success',
-      bio: 'Taylor works closely with our clients to ensure they get the most out of Meeting Time Finder and their feedback shapes our product roadmap.'
+      bio: 'Taylor works closely with our clients to ensure they get the most out of Free Time Finder and their feedback shapes our product roadmap.'
     }
   ];
 
@@ -39,7 +39,7 @@ const Team = () => {
       <div className="home-container flex-grow-1 py-5">
         <h2 className="mb-4 text-center fw-bold">Our Team</h2>
         <p className="text-center mb-5 text-muted mx-auto" style={{ maxWidth: '700px' }}>
-          Meet the passionate people behind Meeting Time Finder who are dedicated to making scheduling easier for teams worldwide.
+          Meet the passionate people behind Free Time Finder who are dedicated to making scheduling easier for teams worldwide.
         </p>
         
         <div className="row g-4">

@@ -36,7 +36,7 @@ const About = () => {
             </p>
             
             <p className="mb-3">
-              Today, Meeting Time Finder helps thousands of teams worldwide save time and reduce the friction of scheduling. Our platform's unique approach focuses on finding optimal meeting times based on everyone's real availability, rather than endless back-and-forth communications.
+              Today, Free Time Finder helps thousands of teams worldwide save time and reduce the friction of scheduling. Our platform's unique approach focuses on finding optimal meeting times based on everyone's real availability, rather than endless back-and-forth communications.
             </p>
             
             <h4 className="mb-3 mt-5">Our Values</h4>

@@ -9,16 +9,16 @@ const Footer = () => {
       <div className="container">
         <div className="row mb-4">
           <div className="col-md-5 mb-4">
-            <h5 className="fw-bold mb-3">Meeting Time Finder</h5>
+            <h5 className="fw-bold mb-3">Free Time Finder</h5>
             <p className="text-muted">
               The easiest way to find the perfect meeting time for your team or group.
               Our scheduling tool helps teams coordinate across time zones and busy calendars.
             </p>
             <div className="social-links mt-3">
-              <a href="https://facebook.com/meetingtimefinder" className="text-decoration-none me-3" aria-label="Facebook">
+              <a href="https://facebook.com/freetimefinder" className="text-decoration-none me-3" aria-label="Facebook">
                 <i className="fab fa-facebook"></i>
               </a>
-              <a href="https://linkedin.com/company/meetingtimefinder" className="text-decoration-none me-3" aria-label="LinkedIn">
+              <a href="https://linkedin.com/company/freetimefinder" className="text-decoration-none me-3" aria-label="LinkedIn">
                 <i className="fab fa-linkedin"></i>
               </a>
             </div>
@@ -38,7 +38,7 @@ const Footer = () => {
             <ul className="list-unstyled">
               <li className="mb-2">
                 <i className="fas fa-envelope me-2 text-muted"></i>
-                <a href="mailto:contact@meetingtimefinder.com" className="text-decoration-none text-muted">contact@meetingtimefinder.com</a>
+                <a href="mailto:contact@freetimefinder.com" className="text-decoration-none text-muted">contact@freetimefinder.com</a>
               </li>
               <li className="mb-2">
                 <i className="fas fa-phone me-2 text-muted"></i>
@@ -54,7 +54,7 @@ const Footer = () => {
         
         <div className="footer-bottom py-3 border-top">
           <div className="d-flex flex-wrap justify-content-between align-items-center">
-            <p className="text-muted mb-2 mb-md-0">© {currentYear} Meeting Time Finder. All rights reserved.</p>
+            <p className="text-muted mb-2 mb-md-0">© {currentYear} Free Time Finder. All rights reserved.</p>
             <div className="footer-links">
               <Link to="/privacy" className="text-decoration-none text-muted me-3">Privacy</Link>
               <Link to="/terms" className="text-decoration-none text-muted me-3">Terms</Link>
