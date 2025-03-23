@@ -83,7 +83,7 @@ const ScheduleInput = () => {
     };
 
     // Changed polling interval from 3 seconds to 4 seconds
-    const interval = setInterval(fetchUsers, 4000);
+    const interval = setInterval(fetchUsers, 60000);
     fetchUsers(); // Initial fetch right away
     
     // Cleanup function to clear interval when component unmounts

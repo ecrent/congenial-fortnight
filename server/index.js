@@ -19,9 +19,13 @@ const { apiLimiter, authLimiter } = require('./middleware/rateLimiter');
 // List of allowed origins - making this more permissive for troubleshooting
 const allowedOrigins = [
   'https://production.d30jdlodeo6t5m.amplifyapp.com',
+  'https://production.d30jdlodeo6t5m.amplifyapp.com/',
   'http://3.66.236.66',
-  'https://3.66.236.66',
-  'https://pvzboeiejb.execute-api.eu-central-1.amazonaws.com',
+  'https://www.freetimefinder.click/',
+  'https://www.freetimefinder.click',
+  'https://freetimefinder.click/',
+  'https://freetimefinder.click',
+  'https://chhf35hosf.execute-api.eu-central-1.amazonaws.com/prod',
   'https://bug-free-space-waffle-r9v99g7q49jc5wj7-3000.app.github.dev',
   'https://bug-free-space-waffle-r9v99g7q49jc5wj7-3001.app.github.dev',
 

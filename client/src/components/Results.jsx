@@ -50,7 +50,7 @@ const Results = () => {
     
     fetchUsers();
     // Also set up a periodic check to handle dynamic changes
-    const interval = setInterval(fetchUsers, 5000);
+    const interval = setInterval(fetchUsers, 30000);
     
     // Clean up interval on unmount
     return () => clearInterval(interval);
