@@ -126,7 +126,7 @@ app.options('*', cors({
 }));
 
 // Mount routes - adding /production prefix to handle API Gateway
-const apiPrefix = process.env.NODE_ENV === 'production' ? '/production/api/v1' : '/api/v1';
+const apiPrefix = '/api/v1';
 console.log(`Using API prefix: ${apiPrefix}`);
 
 app.use(apiPrefix, sessionRoutes);
@@ -135,12 +135,6 @@ app.use(apiPrefix, scheduleRoutes);
 app.use(apiPrefix, optimalTimesRoutes);
 app.use(`${apiPrefix}/admin`, adminRoutes);
 
-// Also keep the original routes for backward compatibility
-app.use('/api/v1', sessionRoutes);
-app.use('/api/v1', userRoutes);
-app.use('/api/v1', scheduleRoutes);
-app.use('/api/v1', optimalTimesRoutes);
-app.use('/api/v1/admin', adminRoutes);
 
 // 404 handler for undefined routes
 app.use((req, res) => {

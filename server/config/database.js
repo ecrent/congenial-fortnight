@@ -7,42 +7,41 @@ if (process.env.NODE_ENV === 'test') {
   console.log('Running in test environment');
 }
 
-// Default query timeout in milliseconds (5 seconds)
+// Default query timeout in milliseconds
 const DEFAULT_QUERY_TIMEOUT = parseInt(process.env.DB_QUERY_TIMEOUT || 5000);
 
 // Create a connection pool to the PostgreSQL database
 let poolConfig;
 
-// Both production and development can use DATABASE_URL connection string
 
 if (process.env.DATABASE_URL) {
   poolConfig = {
-    connectionString: process.env.DATABASE_URL,
+    connectionString: process.env.DATABASE_URL
   };
-  console.log(`Using database connection string for ${process.env.NODE_ENV} environment`);
+  console.log('Using database connection string from DATABASE_URL');
+} else {
+  console.error('DATABASE_URL environment variable not found!');
+  process.exit(1); // Exit if no connection string is available
 }
 
-// Add connection pool settings regardless of connection method
-poolConfig.max = parseInt(process.env.DB_POOL_MAX || 20);
-poolConfig.idleTimeoutMillis = parseInt(process.env.DB_POOL_IDLE_TIMEOUT || 30000);
-poolConfig.connectionTimeoutMillis = parseInt(process.env.DB_CONNECTION_TIMEOUT || 10000);
+// Fix the 8-connection limit issue
+poolConfig.max = parseInt(process.env.DB_POOL_MAX || 20); // Explicitly set higher than 8
+poolConfig.idleTimeoutMillis = parseInt(process.env.DB_POOL_IDLE_TIMEOUT || 3000); // 3 seconds
+poolConfig.connectionTimeoutMillis = parseInt(process.env.DB_CONNECTION_TIMEOUT || 3000); // 3 seconds
+
+// Log connection configuration
+console.log(`Database pool configured with max=${poolConfig.max} connections`);
 
 const pool = new Pool(poolConfig);
 
-// Log connection status
+// Connection tracking
 pool.on('connect', () => {
-  // Parse DATABASE_URL to extract host and port for logging
-    try {
-      const url = new URL(process.env.DATABASE_URL);
-      console.log(`Connected to PostgreSQL database at ${url.hostname}:${url.port}`);
-    } catch (e) {
-      console.log('Connected to PostgreSQL database via connection string');
-    }
-  
+  console.log(`Database connection established (active connections: ${pool.totalCount || 'unknown'})`);
 });
 
-pool.on('error', (err) => {
-  console.error('PostgreSQL pool error:', err);
+pool.on('error', (err, client) => {
+  console.error('Unexpected database connection error:', err);
+  if (client) client.release(true);
 });
 
 /**
@@ -52,21 +51,15 @@ pool.on('error', (err) => {
  * @param {number} timeout - Query timeout in milliseconds
  * @returns {Promise} - Query result
  */
-const queryWithTimeout = async (text, params, timeout = DEFAULT_QUERY_TIMEOUT) => {
+const queryWithTimeout = async (text, params = [], timeout = DEFAULT_QUERY_TIMEOUT) => {
   const client = await pool.connect();
   
   try {
-    // Set statement timeout for this query (fix: no quotes around the value)
+    // Set statement timeout for this query
     await client.query(`SET statement_timeout TO ${timeout}`);
     
-    // Add query configuration with rowMode
-    const query = {
-      text: text,
-      values: params
-    };
-    
     // Execute the query with parameters
-    const result = await client.query(query);
+    const result = await client.query(text, params);
     return result;
   } catch (error) {
     // Enhance error message for timeout conditions
@@ -76,7 +69,7 @@ const queryWithTimeout = async (text, params, timeout = DEFAULT_QUERY_TIMEOUT) =
     }
     throw error;
   } finally {
-    // Reset statement timeout and release client back to pool
+    // Always reset statement timeout and release client back to pool
     try {
       await client.query('RESET statement_timeout');
     } finally {
