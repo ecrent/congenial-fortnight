@@ -67,6 +67,9 @@ app.use(cors({
 
 app.use(express.json());
 
+// Enable trust proxy
+app.set('trust proxy', 1);
+
 // Log all requests for debugging
 app.use((req, res, next) => {
   console.log(`${req.method} ${req.path} - Origin: ${req.headers.origin}`);

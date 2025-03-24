@@ -5,7 +5,6 @@ require('dotenv').config();
 if (process.env.NODE_ENV === 'test') {
   require('dotenv').config({ path: './.env.test' });
   console.log('Running in test environment');
-  console.log(`DB Connection: ${process.env.DB_HOST}:${process.env.DB_PORT}`);
 }
 
 // Default query timeout in milliseconds (5 seconds)
@@ -15,7 +14,7 @@ const DEFAULT_QUERY_TIMEOUT = parseInt(process.env.DB_QUERY_TIMEOUT || 5000);
 let poolConfig;
 
 // In production, use the DATABASE_URL connection string
-if (process.env.NODE_ENV === 'production' && process.env.DATABASE_URL) {
+if (process.env.DATABASE_URL) {
   poolConfig = {
     connectionString: process.env.DATABASE_URL,
     ssl: {
@@ -39,7 +38,14 @@ const pool = new Pool(poolConfig);
 
 // Log connection status
 pool.on('connect', () => {
-  console.log(`Connected to PostgreSQL database at ${process.env.DB_HOST}:${process.env.DB_PORT}`);
+  // Parse DATABASE_URL to extract host and port for logging
+    try {
+      const url = new URL(process.env.DATABASE_URL);
+      console.log(`Connected to PostgreSQL database at ${url.hostname}:${url.port}`);
+    } catch (e) {
+      console.log('Connected to PostgreSQL database via connection string');
+    }
+  
 });
 
 pool.on('error', (err) => {
