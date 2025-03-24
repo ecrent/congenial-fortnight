@@ -13,20 +13,13 @@ const DEFAULT_QUERY_TIMEOUT = parseInt(process.env.DB_QUERY_TIMEOUT || 5000);
 // Create a connection pool to the PostgreSQL database
 let poolConfig;
 
-// In production, use the DATABASE_URL connection string
+// Both production and development can use DATABASE_URL connection string
+
 if (process.env.DATABASE_URL) {
   poolConfig = {
     connectionString: process.env.DATABASE_URL,
-    ssl: {
-      rejectUnauthorized: false // Required for some hosted services (e.g., AWS RDS)
-    }
   };
-  console.log('Using production database connection string');
-} else {
-  // For development or when individual parameters are provided
-  poolConfig = {
-    connectionString: process.env.DATABASE_URL,
-  };
+  console.log(`Using database connection string for ${process.env.NODE_ENV} environment`);
 }
 
 // Add connection pool settings regardless of connection method
