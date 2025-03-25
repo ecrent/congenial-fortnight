@@ -11,7 +11,7 @@ const userRoutes = require('./routes/users');
 const scheduleRoutes = require('./routes/schedules');
 const optimalTimesRoutes = require('./routes/optimalTimes'); 
 const adminRoutes = require('./routes/admin');
-const debugRoutes = require('./routes/debug');
+
 
 // Import rate limiting middleware
 const { apiLimiter, authLimiter } = require('./middleware/rateLimiter');
@@ -37,7 +37,7 @@ console.log('Allowed origins:', allowedOrigins);
 // Configure CORS middleware properly
 app.use(cors({
   origin: function(origin, callback) {
-    console.log('Request origin:', origin);
+    // Removed redundant console.log here
     
     // For AWS Lambda and API Gateway, handle missing origin properly
     if (!origin) {
@@ -76,8 +76,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Add debug routes before rate limiting
-app.use('/debug', debugRoutes);
+
 
 // Apply rate limiters to specific route groups
 app.use('/api/v1/users/login', authLimiter); // Strict limit for login
@@ -89,32 +88,6 @@ app.get('/', (req, res) => {
   console.log('somebody hit the home route');
 });
 
-// Add a debug route to test CORS
-app.get('/api/v1/debug/cors', (req, res) => {
-  // Set all CORS headers explicitly in this debug endpoint
-  const origin = req.headers.origin || 'No origin';
-  res.header('Access-Control-Allow-Origin', origin);
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-  
-  res.status(200).json({
-    message: 'CORS debug endpoint reached successfully',
-    headers: {
-      request: req.headers,
-      response: {
-        'access-control-allow-origin': res.getHeader('Access-Control-Allow-Origin'),
-        'access-control-allow-credentials': res.getHeader('Access-Control-Allow-Credentials'),
-        'access-control-allow-methods': res.getHeader('Access-Control-Allow-Methods'),
-        'access-control-allow-headers': res.getHeader('Access-Control-Allow-Headers')
-      }
-    },
-    origin: origin,
-    path: req.path,
-    method: req.method,
-    timestamp: new Date().toISOString()
-  });
-});
 
 // Explicitly handle OPTIONS requests for all routes
 app.options('*', cors({
