@@ -46,6 +46,15 @@ CREATE TABLE IF NOT EXISTS schedules (
 CREATE INDEX idx_schedules_user ON schedules(user_name);
 CREATE INDEX idx_schedules_availability ON schedules(day_of_week, start_time, end_time);
 
+-- Optimize for PostgreSQL 17.4
+-- Add improved index for schedules (improves the optimal times query)
+CREATE INDEX idx_schedules_session_day_time ON schedules(session_code, day_of_week, start_time, end_time);
+
+-- Set improved statistics target for better query planning
+ALTER TABLE schedules ALTER COLUMN day_of_week SET STATISTICS 1000;
+ALTER TABLE schedules ALTER COLUMN start_time SET STATISTICS 1000;
+ALTER TABLE schedules ALTER COLUMN end_time SET STATISTICS 1000;
+
 -- Add sample data for testing
 INSERT INTO sessions (session_code) VALUES ('TES12345');
 INSERT INTO users (name, email, password, role)

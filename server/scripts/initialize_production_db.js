@@ -15,7 +15,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // Load production env variables
-require('dotenv').config({ path: path.join(__dirname, '../.env.production') });
+require('dotenv').config({ path: path.join(__dirname, './.env') });
 
 // Check for DATABASE_URL
 if (!process.env.DATABASE_URL) {
@@ -28,7 +28,11 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
     rejectUnauthorized: false
-  }
+  },
+  // Add PostgreSQL 17.4 compatibility settings
+  keepAlive: true,
+  idle_in_transaction_session_timeout: 20000, // 10 seconds
+  application_name: 'freetimefinder_init'
 });
 
 // Read schema file

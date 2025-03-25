@@ -36,3 +36,7 @@ CREATE TABLE IF NOT EXISTS schedules (
     FOREIGN KEY (user_name) REFERENCES users(name) ON DELETE CASCADE,
     CHECK (end_time > start_time)
 );
+
+-- Add improved indexes for testing with PostgreSQL 17.4
+CREATE INDEX idx_schedules_session_user ON schedules(session_code, user_name);
+CREATE INDEX idx_schedules_session_day_time ON schedules(session_code, day_of_week, start_time, end_time);

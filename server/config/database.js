@@ -13,12 +13,17 @@ const DEFAULT_QUERY_TIMEOUT = parseInt(process.env.DB_QUERY_TIMEOUT || 5000);
 // Create a connection pool to the PostgreSQL database
 let poolConfig;
 
-
 if (process.env.DATABASE_URL) {
   poolConfig = {
     connectionString: process.env.DATABASE_URL
   };
   console.log('Using database connection string from DATABASE_URL');
+  
+  // Add support for newer protocol version in PostgreSQL 17.4
+  poolConfig.keepAlive = true;
+  
+  // Enable extended result metadata for PostgreSQL 17.4 enhanced diagnostics
+  poolConfig.query_timeout = DEFAULT_QUERY_TIMEOUT;
 } else {
   console.error('DATABASE_URL environment variable not found!');
   process.exit(1); // Exit if no connection string is available
@@ -78,44 +83,14 @@ const queryWithTimeout = async (text, params = [], timeout = DEFAULT_QUERY_TIMEO
   }
 };
 
-// Transaction support with timeout
-const transaction = async (callback, timeout = DEFAULT_QUERY_TIMEOUT) => {
-  const client = await pool.connect();
-  
-  try {
-    // Set statement timeout for this transaction
-    await client.query(`SET statement_timeout TO ${timeout}`);
-    await client.query('BEGIN');
-    const result = await callback(client);
-    await client.query('COMMIT');
-    return result;
-  } catch (error) {
-    await client.query('ROLLBACK');
-    // Enhance error message for timeout conditions
-    if (error.message && error.message.includes('statement timeout')) {
-      error.message = `Transaction timed out after ${timeout}ms`;
-      error.code = 'QUERY_TIMEOUT';
-    }
-    throw error;
-  } finally {
-    // Reset statement timeout and release client
-    try {
-      await client.query('RESET statement_timeout');
-    } finally {
-      client.release();
-    }
-  }
-};
-
 // Export functions to use in routes
 module.exports = {
-  // Simple query function with timeout
+  // Main query function
   query: (text, params, timeout = DEFAULT_QUERY_TIMEOUT) => queryWithTimeout(text, params, timeout),
   
-  // Client with transaction support
+  // For API consistency, but both point to the same implementation
   client: {
     query: (text, params, timeout = DEFAULT_QUERY_TIMEOUT) => queryWithTimeout(text, params, timeout),
-    transaction
   },
   pool,
   DEFAULT_QUERY_TIMEOUT

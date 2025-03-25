@@ -55,7 +55,7 @@ router.get('/optimal-times/:sessionCode', authenticate, async (req, res) => {
            FROM schedules 
            WHERE session_code = $1 
              AND day_of_week = s.day_of_week) AS total_users,
-          ARRAY_AGG(DISTINCT user_name) AS available_users
+          array_agg(DISTINCT user_name) AS available_users
         FROM schedules s
         WHERE session_code = $1
         GROUP BY day_of_week
@@ -74,7 +74,7 @@ router.get('/optimal-times/:sessionCode', authenticate, async (req, res) => {
         AND user_count = total_users
       ORDER BY
         day_of_week,
-        duration DESC;
+        duration DESC
     `, [sessionCode, meetingDuration], 30000); // Longer timeout for this complex query
     
     const optimalTimes = result.rows;
