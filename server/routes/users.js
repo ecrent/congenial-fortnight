@@ -75,8 +75,8 @@ router.post('/users/register', async (req, res) => {
     // Hash the password before storing it
     const hashedPassword = await bcrypt.hash(password, saltRounds);
     
-    // Use db.query for consistency with other query calls
-    const result = await db.query(
+    // User registration - critical write operation using db.query
+    const result = await db.client.query(
       'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING *',
       [name, email, hashedPassword]
     );
@@ -261,7 +261,8 @@ router.put('/users/:name/ready', authenticate, async (req, res) => {
       });
     }
     
-    const result = await db.query(
+    // User status update using db.query
+    const result = await db.client.query(
       'UPDATE users SET is_ready = $1 WHERE name = $2 RETURNING *',
       [isReady, name]
     );

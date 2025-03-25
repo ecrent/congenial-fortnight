@@ -274,7 +274,7 @@ router.delete('/users/:id', async (req, res) => {
     }
     
     // Delete the user - cascading delete will remove their schedules too
-    await db.query(
+    await db.client.query(
       'DELETE FROM users WHERE id = $1',
       [userId]
     );
@@ -338,7 +338,7 @@ router.patch('/users/:id/role', async (req, res) => {
     }
     
     // Update the user's role
-    const result = await db.query(
+    const result = await db.client.query(
       'UPDATE users SET role = $1 WHERE id = $2 RETURNING id, name, email, role, is_ready',
       [role, userId]
     );
@@ -477,7 +477,7 @@ router.put('/schedules/:id', async (req, res) => {
     values.push(scheduleId);
     
     // Execute update query
-    const result = await db.query(
+    const result = await db.client.query(
       `UPDATE schedules SET ${updates.join(', ')} WHERE id = $${paramCount} RETURNING *`,
       values
     );
@@ -529,7 +529,7 @@ router.delete('/schedules/:id', async (req, res) => {
     }
     
     // Delete the schedule entry
-    await db.query(
+    await db.client.query(
       'DELETE FROM schedules WHERE id = $1',
       [scheduleId]
     );
