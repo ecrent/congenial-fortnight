@@ -26,8 +26,8 @@ router.get('/schedules/user/:name', authenticate, async (req, res) => {
       });
     }
     
-    // Check if user exists
-    const userCheck = await db.client.query(
+    // Check if user exists - using db.query for read operations
+    const userCheck = await db.query(
       'SELECT name FROM users WHERE name = $1',
       [name]
     );
@@ -39,8 +39,8 @@ router.get('/schedules/user/:name', authenticate, async (req, res) => {
       });
     }
     
-    // Get all availability entries for this user
-    const result = await db.client.query(
+    // Get all availability entries for this user - using db.query for read operations
+    const result = await db.query(
       'SELECT * FROM schedules WHERE user_name = $1 ORDER BY day_of_week, start_time',
       [name]
     );
@@ -75,6 +75,15 @@ router.post('/schedules', authenticate, async (req, res) => {
       return res.status(400).json({
         status: 'fail',
         message: 'All fields are required: session_code, user_name, day_of_week, start_time, end_time'
+      });
+    }
+    
+    // SECURITY FIX: Check if the authenticated user is the same as the user_name in the request
+    // This should be placed early in the validation process
+    if (req.user.name !== user_name) {
+      return res.status(403).json({
+        status: 'fail',
+        message: 'You are not authorized to create schedules for other users'
       });
     }
     
@@ -125,8 +134,8 @@ router.post('/schedules', authenticate, async (req, res) => {
       });
     }
     
-    // Check if session exists
-    const sessionCheck = await db.client.query(
+    // Check if session exists - using db.query for read operation
+    const sessionCheck = await db.query(
       'SELECT session_code FROM sessions WHERE session_code = $1 AND expires_at > NOW()',
       [session_code]
     );
@@ -138,8 +147,8 @@ router.post('/schedules', authenticate, async (req, res) => {
       });
     }
     
-    // Check if user exists
-    const userCheck = await db.client.query(
+    // Check if user exists - using db.query for read operation
+    const userCheck = await db.query(
       'SELECT name FROM users WHERE name = $1',
       [user_name]
     );
@@ -151,7 +160,7 @@ router.post('/schedules', authenticate, async (req, res) => {
       });
     }
     
-    // Create the availability entry
+    // Create the availability entry - using db.client.query for write operation
     const result = await db.client.query(
       'INSERT INTO schedules (session_code, user_name, day_of_week, start_time, end_time) VALUES ($1, $2, $3, $4, $5) RETURNING *',
       [session_code, user_name, day_of_week, start_time, end_time]
@@ -198,9 +207,9 @@ router.delete('/schedules/:id', authenticate, async (req, res) => {
       });
     }
     
-    // Check if the schedule exists and belongs to the authenticated user
-    const scheduleCheck = await db.client.query(
-      'SELECT user_name FROM schedules WHERE id = $1',
+    // Check if the schedule exists and belongs to the authenticated user - using db.query for read
+    const scheduleCheck = await db.query(
+      'SELECT s.user_name, s.session_code FROM schedules s WHERE s.id = $1',
       [scheduleId]
     );
     
@@ -219,8 +228,21 @@ router.delete('/schedules/:id', authenticate, async (req, res) => {
       });
     }
     
-    // Delete the schedule entry
-    const result = await db.client.query(
+    // Check if the session has expired - using db.query for read operation
+    const sessionCheck = await db.query(
+      'SELECT session_code FROM sessions WHERE session_code = $1 AND expires_at > NOW()',
+      [scheduleCheck.rows[0].session_code]
+    );
+    
+    if (sessionCheck.rows.length === 0) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Cannot modify schedules for expired sessions'
+      });
+    }
+    
+    // Delete the schedule entry - using db.client.query for write operation
+    await db.client.query(
       'DELETE FROM schedules WHERE id = $1 RETURNING id',
       [scheduleId]
     );
