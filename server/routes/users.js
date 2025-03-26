@@ -3,17 +3,20 @@ const router = express.Router();
 const db = require('../config/database');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
-const { generateAccessToken, generateRefreshToken } = require('../utils/jwt');
+const { generateAccessToken, generateRefreshToken, verifyToken } = require('../utils/jwt');
 const { authenticate } = require('../middleware/auth');
 const { isValidEmail, isValidPassword, isValidUsername } = require('../utils/validation');
 
 // Register a new user
 router.post('/users/register', async (req, res) => {
-  console.log('Registration attempt:', { 
-    name: req.body.name,
-    email: req.body.email,
-    passwordProvided: !!req.body.password 
-  });
+  // Only log in development environment
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('Registration attempt:', { 
+      name: req.body.name,
+      email: req.body.email,
+      passwordProvided: !!req.body.password 
+    });
+  }
   
   try {
     const { name, email, password } = req.body;
@@ -102,12 +105,16 @@ router.post('/users/register', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Registration error details:', {
-      message: error.message,
-      stack: error.stack,
-      code: error.code,
-      detail: error.detail
-    });
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('Registration error details:', {
+        message: error.message,
+        stack: error.stack,
+        code: error.code,
+        detail: error.detail
+      });
+    } else {
+      console.error('Registration error:', error.message);
+    }
     
     res.status(500).json({
       status: 'error',
@@ -193,7 +200,6 @@ router.post('/users/refresh-token', async (req, res) => {
       });
     }
     
-    const { verifyToken } = require('../utils/jwt');
     const decoded = verifyToken(refreshToken);
     
     if (!decoded) {
