@@ -2,7 +2,6 @@
 
 Meeting Time Finder is a web application that helps teams find the perfect meeting times by coordinating everyone's schedules and availability.
 
-![Meeting Time Finder Logo](https://github.com/yourusername/congenial-fortnight/raw/main/client/public/logo192.png)
 
 ## Features
 
