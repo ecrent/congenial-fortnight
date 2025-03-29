@@ -8,6 +8,9 @@ client/coverage
 # production
 client/build
 
+
+docs
+
 # env
 client/.env
 server/.env
