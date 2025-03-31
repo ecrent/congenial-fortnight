@@ -25,6 +25,10 @@ const allowedOrigins = [
   'https://chhf35hosf.execute-api.eu-central-1.amazonaws.com/prod',
   'https://bug-free-space-waffle-r9v99g7q49jc5wj7-3000.app.github.dev',
   'https://bug-free-space-waffle-r9v99g7q49jc5wj7-3001.app.github.dev',
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'https://localhost:3000',
+  'https://localhost:3001',
 
 ];
 

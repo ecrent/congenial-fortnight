@@ -57,7 +57,7 @@ Before you begin, ensure you have the following installed:
 
 ### Server Configuration
 
-Change the name of the `.env.development` files name to `.env` both in the server and the client folders
+Change the name of the `sample env file` files name to `.env` both in the server and the client folders
 
 ### Create a Postgresql database
 
